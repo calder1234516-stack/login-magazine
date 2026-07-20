@@ -1,0 +1,3216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; form-action 'self' https://formsubmit.co; frame-ancestors 'none'; base-uri 'self';">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Login Magazine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #0000ff;
+    --white: #ffffff;
+    --black: #000000;
+    --white-60: rgba(255,255,255,0.80);   /* secondary text — AA ~5.6:1 on blue */
+    --text-muted: rgba(255,255,255,0.74);  /* muted text — AA ~4.85:1 on blue */
+    --white-35: rgba(255,255,255,0.35);    /* thin borders / dividers only */
+    --white-15: rgba(255,255,255,0.15);
+    --white-08: rgba(255,255,255,0.08);
+    --font: 'Plus Jakarta Sans', sans-serif;
+    --display: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+  }
+
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+  body {
+    background: var(--blue);
+    color: var(--white);
+    font-family: var(--font);
+    cursor: url('cursor/cursor.png') 0 0, auto;
+    min-height: 100vh;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* keyboard focus — visible ring on every interactive / custom control.
+     White on blue ≈ 8.6:1, and mouse users never see it (:focus-visible). */
+  :focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 3px;
+  }
+  :focus:not(:focus-visible) { outline: none; }
+
+  /* HEADER */
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding: 24px 16px 20px;
+    border-bottom: 1px solid var(--white-35);
+    gap: 24px;
+  }
+
+  .logo-link { display: inline-block; line-height: 0; }
+  .logo-mark {
+    display: block;
+    width: clamp(160px, 20vw, 280px);
+    height: auto;
+  }
+
+  /* subheadings share the display face */
+  .logo-sub,
+  .hero-eyebrow,
+  .hero-subtitle,
+  .section-label,
+  .issue-title,
+  .issue-byline,
+  .detail-eyebrow,
+  .detail-sub,
+  .detail-price {
+    font-family: var(--display);
+  }
+
+  .logo-sub {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    color: var(--white-60);
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  .header-meta {
+    text-align: right;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--white-60);
+    letter-spacing: 0.06em;
+    line-height: 1.8;
+  }
+
+  .header-meta .live-time {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.02em;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* NAV */
+  .nav {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--white-15);
+  }
+
+  .nav-link {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    padding: 12px 16px;
+    border-right: 1px solid var(--white-15);
+    transition: background 0.12s, color 0.12s;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .nav-link:last-child { border-right: none; }
+
+  .nav-link:hover {
+    background: var(--white);
+    color: var(--blue);
+  }
+
+  .nav-link.active {
+    color: var(--white);
+    position: relative;
+  }
+
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--white);
+  }
+
+  .nav-link.active:hover::after { background: var(--blue); }
+
+  /* TICKER */
+  .ticker {
+    overflow: hidden;
+    background: rgba(0,0,0,0.15);
+    border-bottom: 1px solid var(--white-08);
+    padding: 5px 0;
+  }
+
+  .ticker-track {
+    display: flex;
+    white-space: nowrap;
+    animation: scroll-left 32s linear infinite;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .ticker-track span { padding-right: 32px; }
+  .ticker-dot { margin-right: 32px; color: var(--white-15); }
+
+  @keyframes scroll-left {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* MAIN */
+  .main { padding: 40px 32px 48px; }
+
+  /* TABS */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--white-15);
+  }
+
+  /* ISSUES GRID */
+  .issues-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+  }
+
+  /* ISSUE CARD */
+  .issue-card {
+    position: relative;
+    border: 1px solid var(--white-15);
+    padding: 20px 18px 18px;
+    transition: border-color 0.18s;
+  }
+
+  .issue-card:hover { border-color: rgba(255,255,255,0.55); }
+
+  .card-tag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--white);
+    color: var(--blue);
+    padding: 3px 7px;
+  }
+
+  /* 3D BOOK */
+  .book-stage {
+    width: 100%;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+    margin-bottom: 18px;
+    cursor: grab;
+    touch-action: none;
+    position: relative;
+  }
+  .book-stage:active { cursor: grabbing; }
+
+  .book {
+    --bw: 100px;   /* cover width  */
+    --bh: 136px;   /* cover height */
+    --bd: 5px;     /* spine depth / thickness */
+    position: relative;
+    transform-style: preserve-3d;
+    width: var(--bw);
+    height: var(--bh);
+    transform: rotateX(-12deg) rotateY(-30deg);
+    will-change: transform;
+  }
+
+  .book, .book * { user-select: none; -webkit-user-select: none; }
+  .book img { -webkit-user-drag: none; pointer-events: none; }
+
+  .face {
+    position: absolute;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* ── COVERS ─────────────────────────────── */
+  .bk-cover {
+    width: var(--bw);
+    height: var(--bh);
+    background: #000;
+    overflow: hidden;
+  }
+
+  .bk-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .bk-front {
+    transform: translateZ(calc(var(--bd) / 2));
+    box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.06);
+  }
+
+  .bk-back {
+    transform: rotateY(180deg) translateZ(calc(var(--bd) / 2));
+  }
+
+  /* blank fallback front (issues without a cover image) */
+  .bk-front--blank {
+    background: var(--white);
+    padding: 10px 9px 8px;
+    display: flex;
+    flex-direction: column;
+  }
+  .bk-back--blank { background: #111; }
+
+  /* ── BLACK SPINE (bound left edge) ─────────── */
+  .bk-spine {
+    width: var(--bd);
+    height: var(--bh);
+    left: calc((var(--bw) - var(--bd)) / 2);
+    top: 0;
+    transform: rotateY(-90deg) translateZ(calc(var(--bw) / 2));
+    background:
+      linear-gradient(to right,
+        #000 0%, #1c1c1c 8%, #0a0a0a 50%, #1c1c1c 92%, #000 100%);
+    box-shadow:
+      inset 2px 0 3px rgba(0,0,0,0.7),
+      inset -2px 0 3px rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* ── WHITE PAGE EDGES (fore-edge, top, bottom) ── */
+  .bk-edge {
+    background:
+      linear-gradient(var(--page-shade-dir, to right),
+        rgba(0,0,0,0.20) 0%, rgba(0,0,0,0) 14%,
+        rgba(0,0,0,0) 86%, rgba(0,0,0,0.14) 100%),
+      repeating-linear-gradient(var(--page-line-dir, to right),
+        #f6f3ec 0px, #f6f3ec 0.55px,
+        #d7d2c4 0.55px, #d7d2c4 1.15px);
+    background-color: #efece3;
+  }
+
+  /* fore-edge: right wall — pages stack across the depth → vertical lines */
+  .bk-fore {
+    width: var(--bd);
+    height: var(--bh);
+    left: calc((var(--bw) - var(--bd)) / 2);
+    top: 0;
+    transform: rotateY(90deg) translateZ(calc(var(--bw) / 2));
+    --page-line-dir: to right;
+    --page-shade-dir: to bottom;
+  }
+
+  /* top wall — page lines run along width, stacked along depth */
+  .bk-top {
+    width: var(--bw);
+    height: var(--bd);
+    left: 0;
+    top: calc((var(--bh) - var(--bd)) / 2);
+    transform: rotateX(90deg) translateZ(calc(var(--bh) / 2));
+    --page-line-dir: to bottom;
+    --page-shade-dir: to right;
+  }
+
+  /* bottom wall */
+  .bk-bottom {
+    width: var(--bw);
+    height: var(--bd);
+    left: 0;
+    top: calc((var(--bh) - var(--bd)) / 2);
+    transform: rotateX(-90deg) translateZ(calc(var(--bh) / 2));
+    --page-line-dir: to bottom;
+    --page-shade-dir: to right;
+  }
+
+  /* drag hint */
+  .drag-hint {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: opacity 0.45s;
+    z-index: 2;
+  }
+  .drag-hint.hide { opacity: 0; }
+
+  .cover-masthead {
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #000;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .cover-rule {
+    height: 2.5px;
+    background: var(--blue);
+    margin: 5px 0 4px;
+    flex-shrink: 0;
+  }
+
+  .cover-issue-num {
+    font-family: var(--font);
+    font-size: 7.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: #555;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .cover-image {
+    flex: 1;
+    background: var(--blue);
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .cover-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent, transparent 5px,
+      rgba(255,255,255,0.04) 5px, rgba(255,255,255,0.04) 6px
+    );
+  }
+
+  .cover-footer {
+    font-family: var(--font);
+    font-size: 6.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: #888;
+    text-transform: uppercase;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  .issue-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .issue-byline {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .issue-desc {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--white-60);
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+
+  .issue-cta {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white);
+    border-bottom: 1px solid rgba(255,255,255,0.45);
+    padding-bottom: 1px;
+    display: inline-block;
+    cursor: pointer;
+    transition: border-color 0.12s;
+  }
+
+  .issue-cta:hover { border-bottom-color: var(--white); }
+
+  .issue-cta.unavailable {
+    color: var(--text-muted);
+    border-bottom-color: var(--white-15);
+    cursor: default;
+  }
+
+  .issue-specs {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .issue-contributors {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+
+  .issue-shipping {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-top: 7px;
+    display: block;
+  }
+
+  .hero-shipping {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 10px;
+  }
+
+  /* ── GALLERY ── */
+  .gallery-controls {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  /* events header banner (shown on the Events filter) */
+  .events-banner {
+    display: none;
+    position: relative;
+    width: 100%;
+    margin-bottom: 24px;
+    border: 1px solid var(--white-15);
+    overflow: hidden;
+  }
+  .events-banner.show { display: block; }
+  .events-banner img {
+    width: 100%;
+    height: clamp(220px, 42vh, 460px);
+    object-fit: cover;
+    display: block;
+  }
+  .events-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,255,0.55) 0%, rgba(0,0,255,0) 55%);
+  }
+  .events-banner-cap {
+    position: absolute;
+    left: 24px;
+    bottom: 20px;
+    z-index: 1;
+  }
+  .events-banner-title {
+    font-family: var(--display);
+    font-size: clamp(24px, 4vw, 40px);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .events-banner-meta {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.8);
+  }
+
+  .gallery-filter {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 6px 14px 6px 0;
+    margin-right: 14px;
+    border-right: 1px solid var(--white-15);
+    cursor: pointer;
+    transition: color 0.12s;
+    user-select: none;
+  }
+
+  .gallery-filter:last-child { border-right: none; }
+  .gallery-filter:hover { color: var(--white-60); }
+  .gallery-filter.active { color: var(--white); }
+
+  .gallery-grid {
+    columns: 3;
+    column-gap: 12px;
+  }
+
+  @media (max-width: 900px) { .gallery-grid { columns: 2; } }
+  @media (max-width: 560px) { .gallery-grid { columns: 1; } }
+
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--white-15);
+    cursor: pointer;
+    display: block;
+  }
+
+  .gallery-item:hover .gallery-overlay { opacity: 1; }
+
+  .gallery-img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,255,0.55);
+    opacity: 0;
+    transition: opacity 0.18s;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 14px;
+  }
+
+  .gallery-overlay-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    margin-bottom: 2px;
+  }
+
+  .gallery-overlay-meta {
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* LIGHTBOX */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,200,0.96);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    cursor: crosshair;
+  }
+
+  .lightbox.open { display: flex; }
+
+  .lightbox-inner {
+    position: relative;
+    max-width: 760px;
+    width: calc(100vw - 64px);
+  }
+
+  .lightbox-img {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: rgba(0,0,0,0.2);
+  }
+
+  .lightbox-img img {
+    width: 100%;
+    height: auto;
+    max-height: 78vh;
+    object-fit: contain;
+    display: block;
+  }
+
+  .lightbox-caption {
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .lightbox-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--white);
+  }
+
+  .lightbox-meta {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--white-60);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: -36px;
+    right: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    cursor: pointer;
+    transition: color 0.12s;
+    user-select: none;
+  }
+
+  .lightbox-close:hover { color: var(--white); }
+
+  .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.12s;
+    padding: 8px;
+  }
+
+  .lightbox-nav:hover { color: var(--white); }
+  .lightbox-nav.prev { left: -52px; }
+  .lightbox-nav.next { right: -52px; }
+
+  /* FOOTER */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 32px;
+    border-top: 1px solid var(--white-15);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a:hover { color: var(--white-60); }
+
+  /* ── HERO ACTIONS ───────────────────────────────────────────── */
+  .hero-actions { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+
+  .hero-btn-primary {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--white);
+    color: var(--blue);
+    border: none;
+    padding: 14px 26px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .hero-btn-primary:hover { opacity: 0.85; }
+
+  .hero-btn-secondary {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--white-60);
+    border: 1px solid var(--white-35);
+    padding: 13px 22px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .hero-btn-secondary:hover { color: var(--white); border-color: var(--white); }
+
+  /* ── INLINE PAYMENT OPTIONS ─────────────────────────────────── */
+  .pay-heading {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-top: 22px;
+  }
+
+  .pay-note {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 12px;
+  }
+
+  .pay-options {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .pay-opt {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border: 1px solid var(--white);
+    padding: 18px 24px 18px;
+    text-decoration: none;
+    transition: background 0.15s;
+    min-width: 180px;
+  }
+  .pay-opt:hover { background: rgba(255,255,255,0.06); }
+  .pay-opt:hover .pay-opt-cta { opacity: 0.72; }
+
+  .pay-opt-cta {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: var(--white);
+    padding: 11px 18px;
+    margin-top: 12px;
+    text-align: center;
+    transition: opacity 0.14s;
+  }
+
+  .pay-opt-title {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--white-60);
+  }
+
+  .pay-opt-price {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.1;
+  }
+
+  .pay-opt-sub {
+    font-size: 12px;
+    color: var(--white-60);
+    line-height: 1.4;
+  }
+
+  /* ── SUBMIT FORM ────────────────────────────────────────────── */
+  .submit-form {
+    max-width: 620px;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    margin-top: 8px;
+  }
+
+  .form-row { display: flex; flex-direction: column; gap: 8px; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
+
+  .form-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--white-60);
+  }
+  .form-label .req { color: var(--white); }
+  .form-label .opt {
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-left: 6px;
+  }
+
+  .form-hint {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--white);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--white-15);
+    padding: 12px 14px;
+    width: 100%;
+    transition: border-color 0.14s, background 0.14s;
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 0;
+  }
+
+  .form-textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+
+  .form-input::placeholder,
+  .form-textarea::placeholder { color: var(--text-muted); }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.07);
+  }
+
+  .form-select {
+    cursor: pointer;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--white-60) 50%),
+      linear-gradient(135deg, var(--white-60) 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) calc(1em + 2px),
+      calc(100% - 13px) calc(1em + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+  .form-select option { background: var(--blue); color: var(--white); }
+
+  .form-file {
+    font-family: var(--font);
+    font-size: 12px;
+    color: var(--white-60);
+  }
+  .form-file::file-selector-button {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: var(--white);
+    border: none;
+    padding: 9px 14px;
+    margin-right: 14px;
+    cursor: pointer;
+    transition: opacity 0.14s;
+  }
+  .form-file::file-selector-button:hover { opacity: 0.7; }
+
+  .form-submit {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: var(--white);
+    border: none;
+    padding: 15px 22px;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: opacity 0.14s;
+  }
+  .form-submit:hover { opacity: 0.72; }
+  .form-submit:disabled { opacity: 0.5; cursor: default; }
+
+  .form-note {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  .form-status {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.6;
+    padding: 14px 16px;
+    border: 1px solid var(--white-15);
+    background: rgba(255,255,255,0.05);
+    display: none;
+  }
+  .form-status.show { display: block; }
+  .form-status.ok   { border-color: rgba(255,255,255,0.5); }
+  .form-status.err  { border-color: rgba(255,120,120,0.6); color: #ffd9d9; }
+
+  /* honeypot */
+  .form-hp { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; }
+
+  /* ── ISSUE DETAIL PAGE ──────────────────────────────────────── */
+  .issue-detail { display: flex; flex-direction: column; gap: 52px; }
+
+  .detail-back {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    cursor: pointer;
+    user-select: none;
+    width: fit-content;
+    transition: color 0.14s;
+  }
+  .detail-back:hover { color: var(--white); }
+
+  .detail-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 200px) 1fr minmax(0, 260px);
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .detail-hero { grid-template-columns: minmax(0, 180px) 1fr; } }
+  @media (max-width: 720px) { .detail-hero { grid-template-columns: 1fr; gap: 28px; } }
+
+  /* compact sidebar: specs + contributors */
+  .detail-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 4px;
+  }
+  @media (max-width: 900px) { .detail-sidebar { display: none; } }
+
+  .detail-sidebar .section-label { margin-bottom: 8px; }
+
+  .detail-sidebar .specs-dl {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  /* inline key → value on one row */
+  .detail-sidebar .specs-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    border-bottom: 1px solid var(--white-08);
+    padding: 5px 0;
+  }
+  .detail-sidebar .specs-key {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .detail-sidebar .specs-val {
+    font-size: 12px;
+    color: var(--white-60);
+    line-height: 1.3;
+    text-align: right;
+  }
+  /* contributors: wrapped name tags */
+  .detail-sidebar .contrib-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .detail-sidebar .contrib-list div {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--white);
+    border: 1px solid var(--white-35);
+    padding: 3px 8px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .detail-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .detail-cover {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border: 1px solid var(--white-15);
+    aspect-ratio: 8.5 / 11;
+    overflow: hidden;
+  }
+  .detail-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* Desktop shows the flat digital cover; the spread slideshow is hidden.
+     The mobile media query below flips this — cover hidden, slideshow shown. */
+  .media-cover-desktop { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .media-track, .media-arrow, .media-dots { display: none; }
+  .media-slide { height: 100%; }
+
+  .detail-contributors-outer {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--white-15);
+  }
+  .detail-contributors { flex: 1; min-width: 200px; }
+  /* desktop: left-col contributors visible, mobile standalone hidden */
+  .detail-contrib-mobile { display: none; }
+  @media (max-width: 720px) {
+    .detail-contrib-desktop { display: none !important; }
+    .detail-contrib-mobile { display: flex !important; }
+  }
+  .detail-contributors .section-label { margin-bottom: 10px; }
+  .detail-contributors .contrib-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .detail-contributors .contrib-list div {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--white);
+    border: 1px solid var(--white-35);
+    padding: 3px 8px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .detail-info { display: flex; flex-direction: column; }
+  .detail-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: var(--white);
+    display: inline-block;
+    padding: 3px 9px;
+    margin-bottom: 18px;
+    width: fit-content;
+  }
+  .detail-title {
+    font-family: var(--display);
+    font-size: clamp(42px, 7vw, 72px);
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 0.95;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .detail-sub {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+  .detail-price { font-size: 20px; font-weight: 600; color: var(--white); margin-bottom: 20px; }
+  .detail-desc {
+    font-size: 16px;
+    color: var(--white-60);
+    line-height: 1.7;
+    max-width: 48ch;
+    margin-bottom: 26px;
+  }
+  .detail-order {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: var(--white);
+    padding: 15px 26px;
+    width: fit-content;
+    cursor: pointer;
+    border: none;
+    font-family: var(--font);
+    transition: opacity 0.14s;
+  }
+  .detail-order:hover { opacity: 0.72; }
+  .detail-ship {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 14px;
+  }
+
+  /* spreads */
+  .spreads-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .spread {
+    position: relative;
+    border: 1px solid var(--white-15);
+    overflow: hidden;
+    background: #fff;
+    padding: 0;
+    display: block;
+    width: 100%;
+    cursor: zoom-in;
+    aspect-ratio: 4 / 3;
+  }
+  .spread img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+  .spread::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 255, 0);
+    transition: background 0.18s;
+  }
+  .spread:hover::after { background: rgba(0, 0, 255, 0.22); }
+
+  /* placeholder (issues without spread scans yet) */
+  .spread--ph {
+    aspect-ratio: 1.5;
+    background: var(--blue);
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .spread--ph::after { content: none; }
+  .spread--ph::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(45deg,
+      transparent, transparent 6px,
+      rgba(255,255,255,0.05) 6px, rgba(255,255,255,0.05) 7px);
+  }
+  .spread-ph-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    z-index: 1;
+  }
+  .spread-ph-sub {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    z-index: 1;
+  }
+
+  /* specs */
+  .specs-dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    column-gap: 32px;
+    border-top: 1px solid var(--white-15);
+  }
+  .specs-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--white-15);
+  }
+  .specs-key {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .specs-val { font-size: 14px; color: var(--white); line-height: 1.5; }
+
+  /* contributors */
+  .contrib-list {
+    columns: 2;
+    column-gap: 32px;
+    font-size: 14px;
+    color: var(--white-60);
+    line-height: 1.95;
+  }
+  @media (max-width: 560px) { .contrib-list { columns: 1; } }
+
+  /* spread lightbox */
+  .spread-lb {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 200, 0.96);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    padding: 48px;
+  }
+  .spread-lb.open { display: flex; }
+  .spread-lb img {
+    max-width: 100%;
+    max-height: 100%;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .spread-lb-close {
+    position: absolute;
+    top: 20px;
+    right: 26px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    cursor: pointer;
+  }
+  .spread-lb-close:hover { color: var(--white); }
+
+  /* ── IN-PLACE FLIP-BOOK (hero book opens into a magazine you flip through) ── */
+  .flipbook {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    perspective: 2600px;
+    z-index: 3;
+  }
+  .flipbook.open { display: flex; }
+
+  .fb-viewport {
+    position: relative;
+    aspect-ratio: 17 / 11;
+    width: min(96%, 1100px);
+    max-height: 86%;
+    transform-style: preserve-3d;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .flipbook.folded .fb-viewport { opacity: 0; transform: scale(0.9); }
+
+  /* static pages + gutter */
+  .fb-page {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    background-color: #fff;
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.50), 0 4px 16px rgba(0,0,0,0.36);
+    transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .fb-left  { left: 0;   background-position: left center;  transform-origin: right center; }
+  .fb-right { left: 50%; background-position: right center; transform-origin: left center; }
+  /* folded (shut) — pages stand up from the spine like a closed book */
+  .flipbook.folded .fb-left  { transform: rotateY(80deg); }
+  .flipbook.folded .fb-right { transform: rotateY(-80deg); }
+
+  .fb-gutter {
+    position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    background: linear-gradient(to right,
+      rgba(0,0,0,0) 42%, rgba(0,0,0,0.20) 49.4%, rgba(0,0,0,0.40) 50%,
+      rgba(0,0,0,0.20) 50.6%, rgba(0,0,0,0) 58%);
+  }
+  .fb-gutter::after {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px;
+    transform: translateX(-0.5px);
+    background: linear-gradient(to bottom,
+      transparent, rgba(0,0,0,0.5) 6%, rgba(0,0,0,0.5) 94%, transparent);
+  }
+
+  /* turning leaf */
+  .fb-leaf {
+    position: absolute; top: 0; height: 100%; width: 50%;
+    transform-style: preserve-3d;
+    z-index: 5; pointer-events: none; display: none;
+  }
+  .fb-leaf.active { display: block; }
+  .fb-leaf.forward  { left: 50%; transform-origin: left center; }
+  .fb-leaf.backward { left: 0;   transform-origin: right center; }
+  .fb-leaf.turning  { transition: transform 0.7s cubic-bezier(0.3, 0.1, 0.2, 1); }
+  .fb-leaf-face {
+    position: absolute; inset: 0;
+    background-color: #fff;
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .fb-leaf-back { transform: rotateY(180deg); }
+  .fb-leaf-shade {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(to right, rgba(0,0,0,0.30), rgba(0,0,0,0) 60%);
+    opacity: 0; transition: opacity 0.35s ease;
+  }
+  .fb-leaf.turning .fb-leaf-shade { opacity: 1; }
+
+  /* click zones + hover chevrons */
+  .fb-hit {
+    position: absolute; top: 0; height: 100%; width: 50%; z-index: 6; cursor: pointer;
+  }
+  .fb-hit.prev { left: 0; }
+  .fb-hit.next { left: 50%; }
+  .fb-hit::after {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-family: var(--display); font-size: 30px; font-weight: 700;
+    color: #000; opacity: 0; transition: opacity 0.15s;
+  }
+  .fb-hit.prev::after { content: '‹'; left: 16px; }
+  .fb-hit.next::after { content: '›'; right: 16px; }
+  .fb-hit:hover::after { opacity: 0.35; }
+
+  .fb-close {
+    position: absolute; top: 4px; right: 6px;
+    font-family: var(--display); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--white);
+    background: none; border: none; cursor: pointer; user-select: none;
+    z-index: 7; padding: 6px 4px;
+  }
+  .fb-close:hover { opacity: 0.7; }
+
+  .fb-bar {
+    display: flex; align-items: center; gap: 16px;
+    font-family: var(--display); font-size: 12px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--white);
+    flex-shrink: 0;
+  }
+  .fb-counter { color: var(--white); }
+  .fb-hint { color: var(--white-60); font-weight: 400; letter-spacing: 0.1em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fb-page, .fb-viewport, .fb-leaf.turning { transition-duration: 0.001s; }
+  }
+  @media (max-width: 700px) {
+    .fb-hint { display: none; }
+    .fb-hit::after { font-size: 22px; }
+  }
+
+  /* ── EMAIL POPUP ────────────────────────────────────────────── */
+  .email-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 20, 0.55);
+  }
+  .email-popup.open { display: flex; }
+
+  .email-card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    background: var(--blue);
+    border: 1px solid var(--white-35);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    padding: 36px 30px 28px;
+    animation: ep-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  @keyframes ep-in {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .email-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-family: var(--display);
+    font-size: 18px;
+    line-height: 1;
+    color: var(--white-60);
+    cursor: pointer;
+    padding: 6px 8px;
+  }
+  .email-close:hover { color: var(--white); }
+
+  .email-eyebrow {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    margin-bottom: 12px;
+  }
+  .email-title {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 10px;
+  }
+  .email-sub {
+    font-size: 13px;
+    color: var(--white-60);
+    line-height: 1.55;
+    margin-bottom: 20px;
+  }
+
+  .email-form { display: flex; flex-direction: column; gap: 12px; }
+  .email-form .form-submit {
+    width: 100%;
+    text-align: center;
+    align-self: stretch;
+  }
+
+  .email-error {
+    font-size: 12px;
+    color: #ffd9d9;
+    letter-spacing: 0.02em;
+  }
+
+  .email-nothanks {
+    background: none;
+    border: none;
+    font-family: var(--font);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    align-self: center;
+    margin-top: 4px;
+    padding: 6px;
+  }
+  .email-nothanks:hover { color: var(--white); }
+
+  .email-msg {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    line-height: 1.5;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .email-card { animation: none; }
+  }
+
+  /* ── INTRO OVERLAY ──────────────────────────────────────────── */
+  #intro-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9999;
+    overflow: hidden;
+    transition: opacity 0.9s ease;
+  }
+
+  #intro-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #intro-skip {
+    position: absolute;
+    bottom: 32px;
+    right: 32px;
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+    cursor: pointer;
+    padding: 8px 14px;
+    border: 1px solid rgba(255,255,255,0.45);
+    transition: color 0.15s, border-color 0.15s;
+    z-index: 1;
+  }
+  #intro-skip:hover { color: #fff; border-color: rgba(255,255,255,0.7); }
+
+  /* ── INTRO LOGO OVERLAY ─────────────────────────────────────── */
+  #intro-logo-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  #intro-logo-wrap img {
+    width: clamp(160px, 26vw, 360px);
+    height: auto;
+    filter: drop-shadow(0 0 48px rgba(255,255,255,0.5)) drop-shadow(0 2px 20px rgba(0,0,0,0.98));
+  }
+
+  @media (max-width: 700px) {
+    #intro-logo-wrap img {
+      width: clamp(120px, 46vw, 240px);
+    }
+  }
+
+  /* hero tabs remove the main top padding so content fills to nav */
+  #tab-issues { margin-top: -40px; }
+  #tab-events { margin-top: -40px; }
+
+  /* ── HERO ISSUE ─────────────────────────────────────────────── */
+  .hero {
+    display: grid;
+    grid-template-columns: 42% 58%;
+    gap: 0;
+    align-items: center;
+    height: var(--hero-h, calc(100vh - 130px));
+    padding: 28px 0 24px;
+    border-bottom: 1px solid var(--white-15);
+    margin-bottom: 0;
+    overflow: clip;
+  }
+
+  /* about video: crop letterbox bars */
+  .about-video-wrap {
+    line-height: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .about-video-wrap video {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center top;
+    margin-bottom: -24px;
+  }
+
+  @media (max-width: 760px) {
+    .hero {
+      grid-template-columns: 1fr;
+      height: auto;
+      padding: 0;
+      gap: 0;
+    }
+    .hero-right {
+      order: -1;
+      height: calc(100dvh - 120px) !important;
+      min-height: 340px;
+    }
+    .hero-left {
+      order: 1;
+      padding: 28px 0 36px;
+    }
+    .about-row {
+      flex-direction: column;
+    }
+    .about-video-wrap {
+      order: -1;
+      width: 100%;
+    }
+    .about-text {
+      order: 1;
+    }
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: var(--white);
+    display: inline-block;
+    padding: 3px 9px;
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-family: var(--display);
+    font-size: clamp(48px, 9vw, 88px);
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 0.95;
+    color: var(--white);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .hero-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .hero-desc {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--white-60);
+    line-height: 1.55;
+    max-width: 360px;
+    margin-bottom: 24px;
+  }
+
+  .hero-cta {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--white);
+    border-bottom: 2px solid var(--white);
+    padding-bottom: 2px;
+    display: inline-block;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .hero-cta:hover { opacity: 0.55; }
+
+  .hero-right {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .hero-book-stage {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: var(--hero-perspective, 2000px);
+    overflow: visible;
+    cursor: grab;
+    touch-action: none;
+    position: relative;
+  }
+  .hero-book-stage:active { cursor: grabbing; }
+
+  .hero-book-scaler {
+    transform: scale(var(--hero-scale, 4));
+    transform-style: preserve-3d;
+  }
+
+  /* ── HAMBURGER ───────────────────────────────────────────── */
+  .nav-links-wrap { display: flex; flex: 1; align-items: center; }
+
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: 14px 16px;
+    background: none;
+    border: none;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .nav-hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--white-60);
+    transition: transform 0.22s ease, opacity 0.22s ease, background 0.22s ease;
+    pointer-events: none;
+  }
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--white); }
+  .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--white); }
+
+  /* ── MOBILE ≤ 700px ──────────────────────────────────────── */
+  @media (max-width: 700px) {
+    .header { align-items: center; padding: 12px 14px; }
+    .nav { padding: 0; }
+    .nav-hamburger { display: flex; }
+    .nav-links-wrap {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      border-top: 1px solid var(--white-15);
+    }
+    .nav-links-wrap.open { display: flex; }
+    .nav-link {
+      border-right: none;
+      border-bottom: 1px solid var(--white-08);
+      padding: 14px 20px;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+    .nav-link.active::after { display: none; }
+
+    .main { padding: 20px 14px 36px; }
+    #tab-issues { margin-top: -20px; }
+    #tab-events { margin-top: -20px; }
+    .header { padding: 14px; gap: 10px; }
+
+    .issues-grid { grid-template-columns: 1fr; }
+    .spreads-grid { grid-template-columns: 1fr; }
+
+    .pay-heading { margin-top: 16px; font-size: 11px; }
+    .pay-options { flex-direction: column; margin-top: 10px; }
+    .pay-opt { min-width: unset; width: 100%; padding: 14px; }
+    .pay-opt-price { font-size: 20px; }
+    .pay-opt-title { font-size: 11px; }
+    .pay-opt-sub { font-size: 12px; }
+    .pay-opt-cta { margin-top: 10px; padding: 12px 16px; }
+
+    /* Mobile: hide the flat cover, show the spreads as a swipeable slideshow.
+       Each slide sizes to its own image so there are no letterbox bars and
+       nothing is cropped — the frame resizes for each spread. */
+    .media-cover-desktop { display: none; }
+    .detail-cover {
+      max-width: 300px;
+      margin: 0 auto;
+      aspect-ratio: auto;
+      height: auto;
+      background: transparent;
+    }
+    .media-track { display: block; height: auto; }
+    .media-slide { display: none; height: auto; }
+    .media-slide.active { display: block; }
+    .detail-cover img { height: auto; object-fit: contain; }
+    .media-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border: none;
+      background: rgba(0, 0, 0, 0.55);
+      color: var(--white);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 2;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .media-prev { left: 6px; }
+    .media-next { right: 6px; }
+    .media-arrow:disabled { opacity: 0.25; pointer-events: none; }
+    .media-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 8px;
+      z-index: 2;
+    }
+    .media-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      transition: background 0.15s, transform 0.15s;
+    }
+    .media-dot.active { background: var(--white); transform: scale(1.3); }
+
+    /* Spreads now live in the top slideshow — hide the separate grid on mobile */
+    .detail-section { display: none; }
+
+    .footer { flex-direction: column; gap: 10px; text-align: center; padding: 16px; }
+    .footer-links { justify-content: center; }
+
+    .detail-hero { gap: 20px; }
+    .detail-order { width: 100%; text-align: center; }
+
+    .hero-actions { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .hero-btn-primary, .hero-btn-secondary { width: 100%; text-align: center; }
+
+    .gallery-controls { gap: 0; }
+    .gallery-filter { font-size: 12px; padding: 6px 10px 6px 0; margin-right: 10px; }
+
+    .lightbox-nav.prev { left: -36px; }
+    .lightbox-nav.next { right: -36px; }
+
+    .book-stage { height: 200px; }
+  }
+
+  /* ── TABLET ≤ 900px ──────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .spreads-grid { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 28px 20px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- INTRO OVERLAY — shown once per session -->
+<div id="intro-overlay">
+  <video id="intro-video" src="video/loginwebvideo.mp4" autoplay muted playsinline></video>
+  <div id="intro-logo-wrap">
+    <img src="new logo.svg" alt="LOGIN Magazine">
+  </div>
+  <span id="intro-skip">Skip</span>
+</div>
+
+<header class="header">
+  <div class="logo-block">
+    <a class="logo-link" id="logoHome" href="#" aria-label="LOGIN Magazine — Home">
+      <img class="logo-mark" src="new logo.svg" alt="LOGIN Magazine">
+    </a>
+  </div>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<nav class="nav">
+  <div class="nav-links-wrap" id="navLinksWrap">
+    <span class="nav-link active" data-tab="issues" role="tab" tabindex="0" data-activate aria-selected="true">Issues</span>
+    <span class="nav-link" data-tab="events" role="tab" tabindex="0" data-activate aria-selected="false">Events</span>
+    <span class="nav-link" data-tab="about" role="tab" tabindex="0" data-activate aria-selected="false">About</span>
+    <span class="nav-link" data-tab="stockists" role="tab" tabindex="0" data-activate aria-selected="false">Stockists</span>
+    <!-- <span class="nav-link" data-tab="submit" role="tab" tabindex="0" data-activate aria-selected="false">Submit</span> -->
+    <span class="nav-link" data-tab="instagram" role="tab" tabindex="0" data-activate aria-selected="false">Instagram</span>
+  </div>
+</nav>
+
+
+<main class="main">
+
+  <!-- ISSUES TAB -->
+  <div class="tab-panel active" id="tab-issues">
+
+    <!-- HERO: Issue 01 -->
+    <section class="hero" id="heroIssue">
+      <div class="hero-left">
+        <div class="hero-eyebrow">Available Now — $35</div>
+        <h1 class="hero-title">Issue<br>01</h1>
+        <div class="hero-subtitle">2026· 134PP · 8.5 × 11 IN. · PERFECT BOUND</div>
+        <p class="hero-desc">LOGIN's inaugural issue explores artists, designers, and technologists whose work and practices revolve around the internet and emerging technologies, documenting how we interact with technology.</p>
+        <div class="hero-actions">
+          <button class="hero-btn-primary" onclick="openIssueDetail(0, true)">Buy Now →</button>
+          <button class="hero-btn-secondary" onclick="openIssueDetail(0, false)">Details</button>
+        </div>
+        <div class="hero-shipping">Ships 1–2 weeks · NYC pickup available</div>
+      </div>
+      <div class="hero-right" id="heroBookTrigger" role="button" tabindex="0" style="cursor:pointer;" title="Open Issue 01 — view spreads" aria-label="Open Issue 01 and view the spreads">
+        <div class="hero-book-stage">
+          <div class="hero-book-scaler">
+            <div class="book" id="book-hero">
+              <div class="face bk-cover bk-front"><img src="issue 01 covers/LOGIN MASTER FILE.png" draggable="false" alt="Issue 01 front cover"></div>
+              <div class="face bk-cover bk-back"><img src="issue 01 covers/LOGIN MASTER FILE67.png" draggable="false" alt="Issue 01 back cover"></div>
+              <div class="face bk-spine"></div>
+              <div class="face bk-edge bk-fore"></div>
+              <div class="face bk-edge bk-top"></div>
+              <div class="face bk-edge bk-bottom"></div>
+            </div>
+          </div>
+          <div class="drag-hint">↻ Drag to rotate · Click to open</div>
+        </div>
+
+        <!-- Opens in place when the book is clicked; flip through the spreads -->
+        <div class="flipbook" id="flipbook" aria-hidden="true">
+          <button class="fb-close" id="fbClose" type="button" aria-label="Close magazine">Close ×</button>
+          <div class="fb-viewport" id="fbViewport">
+            <div class="fb-page fb-left"  id="fbLeft"></div>
+            <div class="fb-page fb-right" id="fbRight"></div>
+            <div class="fb-gutter"></div>
+            <div class="fb-leaf" id="fbLeaf">
+              <div class="fb-leaf-face fb-leaf-front" id="fbLeafFront"></div>
+              <div class="fb-leaf-face fb-leaf-back"  id="fbLeafBack"></div>
+              <div class="fb-leaf-shade"></div>
+            </div>
+            <div class="fb-hit prev" id="fbPrev" aria-label="Previous page"></div>
+            <div class="fb-hit next" id="fbNext" aria-label="Next page"></div>
+          </div>
+          <div class="fb-bar">
+            <span class="fb-counter" id="fbCounter"></span>
+            <span class="fb-hint">Tap edges to turn · Esc to close</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-label">All Issues</div>
+    <div class="issues-grid" id="issuesGrid"></div>
+  </div>
+
+  <!-- ISSUE DETAIL (opened from Order) -->
+  <div class="tab-panel" id="tab-issue-detail">
+    <div class="issue-detail" id="issueDetail"></div>
+  </div>
+
+  <!-- EVENTS TAB -->
+  <div class="tab-panel" id="tab-events">
+    <div class="events-banner show" id="eventsBanner">
+      <img src="event photos/IMG_2845.JPG" alt="Issue 01 Launch Party">
+      <div class="events-banner-cap">
+        <div class="events-banner-title">Issue 01 Launch Party</div>
+        <div class="events-banner-meta">New York · 2026</div>
+      </div>
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+
+  <!-- GALLERY TAB -->
+  <div class="tab-panel" id="tab-gallery">
+    <div class="section-label">Gallery</div>
+    <p style="font-size:14px; color:var(--white-60); line-height:1.7;">Coming soon.</p>
+  </div>
+
+  <!-- ABOUT TAB -->
+  <div class="tab-panel" id="tab-about">
+    <div class="section-label">About</div>
+    <div class="about-row" style="display:flex; gap:40px; align-items:flex-start; flex-wrap:wrap;">
+      <div class="about-text" style="flex:1; min-width:260px; display:flex; flex-direction:column; gap:20px;">
+        <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+          LOGIN magazine is a print publication documenting digital life, art, and culture and the experience of living online where identity, consumption, and technology continuously intersect. Through essays, visual work, and contributions from artists, designers, and technologists, the magazine explores how digital systems shape culture, behavior, and perception. Designed as a physical artifact, LOGIN slows the feed into something meant to be held, revisited, and archived.
+        </p>
+        <p style="font-size:12px; font-weight:400; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:8px;">
+          Published by Calder Anderson — New York
+        </p>
+      </div>
+      <div class="about-video-wrap" style="flex:1; min-width:260px; overflow:hidden;">
+        <video autoplay muted loop playsinline
+          style="width:100%; height:100%; object-fit:cover; display:block; border:none; outline:none; background:#000;"
+          src="video/pixelCrashVideo-1770081926914.mp4"></video>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOCKISTS TAB (placeholder) -->
+  <div class="tab-panel" id="tab-stockists">
+    <div class="section-label">Stockists</div>
+    <p style="font-size:14px; color:var(--white-60); line-height:1.7;">Coming soon.</p>
+  </div>
+
+  <!-- SUBMIT TAB -->
+  <div class="tab-panel" id="tab-submit">
+    <div class="section-label">Submit</div>
+    <p style="max-width:620px; font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75; margin-bottom:8px;">
+      LOGIN accepts submissions of any form or medium — advertisements, video, physical work, photography, writing, design, and beyond. We are interested in work that takes the internet seriously as a subject: its systems, aesthetics, labor, folklore, and consequences. Submissions are reviewed on a rolling basis.
+    </p>
+
+    <form class="submit-form" id="submitForm"
+          action="https://formsubmit.co/calder1234516@gmail.com"
+          method="POST" enctype="multipart/form-data">
+
+      <!-- FormSubmit config -->
+      <input type="hidden" name="_subject" value="LOGIN — New Submission">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="text" name="_honey" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label" for="f-name">Name <span class="req">*</span></label>
+          <input class="form-input" id="f-name" name="Name" type="text" required placeholder="Your name">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="f-email">Email <span class="req">*</span></label>
+          <input class="form-input" id="f-email" name="Email" type="email" required placeholder="you@email.com">
+        </div>
+      </div>
+
+      <div class="form-row" style="max-width:300px;">
+        <label class="form-label" for="f-pronouns">Pronouns <span class="opt">optional</span></label>
+        <input class="form-input" id="f-pronouns" name="Pronouns" type="text" placeholder="e.g. they/them">
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="f-title">Title of work <span class="req">*</span></label>
+        <input class="form-input" id="f-title" name="Title of work" type="text" required placeholder="Title of the work">
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label" for="f-medium">Form / Medium of work <span class="req">*</span></label>
+          <select class="form-select" id="f-medium" name="Medium" required>
+            <option value="" disabled selected>Select a medium…</option>
+            <option value="Advertisement">Advertisement</option>
+            <option value="Video">Video (please submit screenshots + link)</option>
+            <option value="Physical work">Physical work</option>
+            <option value="Photography">Photography</option>
+            <option value="Writing / Essay">Writing / Essay</option>
+            <option value="Illustration / Design">Illustration / Design</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="f-date">Date of creation <span class="req">*</span></label>
+          <input class="form-input" id="f-date" name="Date of creation" type="text" required placeholder="e.g. March 2026">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="f-about">About the work <span class="req">*</span></label>
+        <div class="form-hint">A short statement about the work — what it is, the idea behind it, and any context that helps. This statement may be published in print alongside the work.</div>
+        <textarea class="form-textarea" id="f-about" name="About the work (statement)" required placeholder="Write your statement…"></textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label" for="f-link">Link <span class="opt">optional</span></label>
+          <div class="form-hint">For video, advertisements, or work hosted online.</div>
+          <input class="form-input" id="f-link" name="Link" type="url" placeholder="https://">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="f-files">Attachments <span class="opt">optional</span></label>
+          <div class="form-hint">Screenshots, photography, or images of physical work. Uploads must be high quality / high resolution — print-ready. Up to ~10MB total.</div>
+          <input class="form-file" id="f-files" name="Attachments" type="file" multiple
+                 accept="image/*,.pdf,.gif,.heic">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="f-why">Why do you want to submit? <span class="req">*</span></label>
+        <textarea class="form-textarea" id="f-why" name="Why submit" required placeholder="What draws you to LOGIN?"></textarea>
+      </div>
+
+      <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+
+      <button class="form-submit" id="formSubmitBtn" type="submit">Send Submission →</button>
+
+      <p class="form-note">
+        Submitting sends your work directly to LOGIN by email. We review on a rolling basis and reply to the address you provide.
+      </p>
+    </form>
+  </div>
+
+  <!-- INSTAGRAM TAB -->
+  <div class="tab-panel" id="tab-instagram">
+    <div class="section-label">Instagram</div>
+    <div style="max-width:400px; display:flex; flex-direction:column; gap:14px;">
+      <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+        Follow for updates on Issue 02, behind-the-scenes process, and the ongoing documentation of digital life and culture.
+      </p>
+      <a href="https://www.instagram.com/login.mag/" target="_blank" rel="noopener noreferrer" style="font-size:13px; font-weight:600; letter-spacing:0.08em; color:var(--white); border-bottom:1px solid rgba(255,255,255,0.45); padding-bottom:2px; display:inline-block; width:fit-content;">@login.mag →</a>
+    </div>
+  </div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-inner">
+    <span class="lightbox-close" id="lbClose" role="button" tabindex="0" data-activate aria-label="Close">Close ×</span>
+    <span class="lightbox-nav prev" id="lbPrev" role="button" tabindex="0" data-activate aria-label="Previous">←</span>
+    <span class="lightbox-nav next" id="lbNext" role="button" tabindex="0" data-activate aria-label="Next">→</span>
+    <div class="lightbox-img" id="lbImg"></div>
+    <div class="lightbox-caption">
+      <span class="lightbox-title" id="lbTitle"></span>
+      <span class="lightbox-meta" id="lbMeta"></span>
+    </div>
+  </div>
+</div>
+
+<!-- SPREAD LIGHTBOX -->
+<div class="spread-lb" id="spreadLB">
+  <span class="spread-lb-close" id="spreadLBClose" role="button" tabindex="0" data-activate aria-label="Close">Close ×</span>
+  <img id="spreadLBImg" src="" alt="">
+</div>
+
+<!-- EMAIL POPUP — collects into a private Google Sheet via Apps Script -->
+<div class="email-popup" id="email-popup" role="dialog" aria-modal="true" aria-labelledby="epTitle" aria-hidden="true">
+  <div class="email-card">
+    <button class="email-close" id="epClose" type="button" aria-label="Close">×</button>
+    <div class="email-eyebrow">LOGIN — The List</div>
+    <h2 class="email-title" id="epTitle">Get Issue 02 First.</h2>
+    <p class="email-sub">Join the list for first access to new issues, drops, and events. No spam — just LOGIN.</p>
+    <form class="email-form" id="epForm" novalidate>
+      <input type="text" name="_hp" class="form-hp" id="epHp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="form-hp" for="epEmail">Email</label>
+      <input type="email" name="email" class="form-input" id="epEmail" placeholder="you@email.com" autocomplete="email" required>
+      <div class="email-error" id="epError" role="alert" hidden>Please enter a valid email address.</div>
+      <button type="submit" class="form-submit" id="epSubmit">Join the List →</button>
+      <button type="button" class="email-nothanks" id="epNo">No thanks</button>
+    </form>
+    <p class="email-msg" id="epMsg" role="status" hidden>You're on the list. ✓</p>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>LOGIN Magazine © 2025–2026</span>
+  <div class="footer-links">
+    <a href="https://www.instagram.com/login.mag/" target="_blank" rel="noopener noreferrer">Instagram</a>
+    <a href="mailto:calder1234516@gmail.com">Contact</a>
+  </div>
+</footer>
+
+<script>
+/* ── ISSUES DATA ─────────────────────────────────────────── */
+const issues = [
+  {
+    num: "01",
+    year: "2026",
+    pages: 132,
+    price: "$35",
+    desc: "LOGIN's inaugural issue explores artists, designers, and technologists whose work and practices revolve around the internet and emerging technologies, documenting how we interact with technology. Featuring interviews, essays, and artwork.",
+    contributors: [
+      "Calder Anderson","Riley Daggs","Joaquin Echeverry Braver",
+      "Adora Mehala","Clayton Harris","James Terrazas",
+      "Francis Gallagher","And more."
+    ],
+    interviews: [
+      "Riley Daggs","Jake Harper","Charles Cutt","Aiden Walker",
+      "Zane Kind","Tabi Cass","Max Bochman & Luis Reyes"
+    ],
+    specs: "8.5 × 11 in · Perfect Bound · 132 Pages",
+    available: true,
+    cover:     "issue 01 covers/LOGIN MASTER FILE.png",
+    coverBack: "issue 01 covers/LOGIN MASTER FILE67.png",
+    orderUrl:  "mailto:calder1234516@gmail.com?subject=LOGIN%20Issue%2001%20Order",
+    /* Detailed specs shown on the issue page (key → value) */
+    specsDetail: {
+      "Issue":      "No. 01 — The .exe Issue",
+      "Format":     "Physical magazine",
+      "Dimensions": "8.5 × 11 in (216 × 279 mm)",
+      "Pages":      "132 pages",
+      "Binding":    "Perfect bound, soft cover",
+      "Printing":   "Full color",
+      "Edition":    "First run",
+      "Released":   "2026",
+      "Price":      "$35 USD",
+      "Shipping":   "Ships 1–2 weeks after purchase",
+      "Pickup":     "Local pickup available for NYC orders"
+    },
+    /* Spreads — real product shots. Items without `src` show as placeholders. */
+    spreads: [
+      { src: "spreads/LOGIN PRODUCT SHOTS-18.png", label: "Front Cover", fold: false },
+      { src: "spreads/LOGIN PRODUCT SHOTS-20.png", label: "The .exe Issue", fold: false },
+      { src: "spreads/LOGIN PRODUCT SHOTS-17.png", label: "Table of Contents" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-22.png", label: "Issue 01 spread" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-23.png", label: "Issue 01 spread" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-01.png", label: "Against the Stream" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-03.png", label: "Issue 01 spread" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-06.png", label: "Issue 01 spread" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-10.png", label: "Issue 01 spread" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-13.png", label: "Issue 01 spread" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-14.png", label: "Issue 01 spread" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-15.png", label: "Issue 01 spread" }
+    ]
+  }
+  /* push new issues here — grid reflows automatically */
+];
+
+/* ── GALLERY DATA ────────────────────────────────────────── */
+const galleryItems = [
+  { id:0,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2840.JPG" },
+  { id:1,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2839.JPG" },
+  { id:2,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2844.JPG" },
+  { id:3,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2846.JPG" },
+  { id:4,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2847.JPG" },
+  { id:5,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2848.JPG" },
+  { id:6,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2849.JPG" },
+  { id:7,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2850.JPG" },
+  { id:8,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2851.JPG" },
+  { id:9,  title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2827.jpg" },
+  { id:10, title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_2828.jpg" },
+  { id:11, title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_1829.JPG" },
+  { id:12, title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_1830.JPG" },
+  { id:13, title:"Issue 01 Launch", meta:"Events · NYC", src:"event photos/IMG_1884.JPG" },
+];
+
+let lbIndex = 0;
+
+function filteredItems() { return galleryItems; }
+
+/* ── RENDER ISSUES ───────────────────────────────────────── */
+function bookHTML(issue) {
+  const front = issue.cover
+    ? `<div class="face bk-cover bk-front"><img src="${issue.cover}" draggable="false" alt="Issue ${issue.num} cover"></div>`
+    : `<div class="face bk-cover bk-front bk-front--blank">
+         <div class="cover-masthead">Login</div>
+         <div class="cover-rule"></div>
+         <div class="cover-issue-num">No.${issue.num} / ${issue.pages}pp</div>
+         <div class="cover-image"></div>
+         <div class="cover-footer">NYC Nightlife</div>
+       </div>`;
+  const back = issue.coverBack
+    ? `<div class="face bk-cover bk-back"><img src="${issue.coverBack}" draggable="false" alt=""></div>`
+    : `<div class="face bk-cover bk-back bk-back--blank"></div>`;
+  return `
+    ${front}
+    ${back}
+    <div class="face bk-spine"></div>
+    <div class="face bk-edge bk-fore"></div>
+    <div class="face bk-edge bk-top"></div>
+    <div class="face bk-edge bk-bottom"></div>`;
+}
+
+function renderIssues() {
+  const grid = document.getElementById("issuesGrid");
+  grid.innerHTML = issues.map((iss, i) => `
+    <div class="issue-card" data-idx="${i}">
+      <div class="card-tag">No.${iss.num}</div>
+      <div class="book-stage"><div class="book" id="book-${i}">${bookHTML(iss, i)}</div></div>
+      <div class="issue-meta">
+        <div class="issue-title">Issue ${iss.num}</div>
+        <div class="issue-byline">${iss.year}${iss.price ? ' · ' + iss.price : ''}</div>
+        ${iss.specs ? `<div class="issue-specs">${iss.specs}</div>` : ''}
+        <div class="issue-desc">${iss.desc}</div>
+        ${iss.contributors ? `<div class="issue-contributors">${iss.contributors.join(' · ')}</div>` : ''}
+        <span class="issue-cta ${iss.available ? '' : 'unavailable'}" ${iss.available ? `data-order="${i}" role="button" tabindex="0" data-activate` : ''}>${iss.available ? `Order — ${iss.price || ''}` : 'Coming soon'} →</span>
+        ${iss.available ? `<span class="issue-shipping">Ships 1–2 weeks · NYC pickup available</span>` : ''}
+      </div>
+    </div>`).join("") + `
+    <div class="issue-card" style="min-height:280px;display:flex;align-items:center;justify-content:center;position:relative;">
+      <div class="card-tag">No.02</div>
+      <span style="font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);">Issue 02 Coming Soon</span>
+    </div>`;
+  issues.forEach((_, i) => {
+    const book  = document.getElementById(`book-${i}`);
+    const stage = book?.closest(".book-stage");
+    if (book && stage) new BookController(stage, book, { rotX: -12, rotY: -30, idle: true });
+  });
+}
+
+/* ── ISSUE DETAIL PAGE (opened from Order) ───────────────── */
+function renderIssueDetail(idx) {
+  const iss = issues[idx];
+  if (!iss) return;
+  const el = document.getElementById("issueDetail");
+
+  const spreads = (iss.spreads || []).map((s) => s.src
+    ? `<button class="spread" data-src="${s.src}">
+         <img src="${s.src}" loading="lazy" alt="${s.label || 'Issue ' + iss.num + ' spread'}">
+       </button>`
+    : `<div class="spread spread--ph">
+         <span class="spread-ph-label">${s.label || 'Spread'}</span>
+         <span class="spread-ph-sub">Image coming soon</span>
+       </div>`).join("");
+
+  /* Media carousel slides: the spread images in order (no separate cover slide).
+     Desktop shows only the first spread; mobile turns this into a swipeable slideshow. */
+  const mediaSlides = (iss.spreads || []).filter(s => s.src).map(s =>
+    `<div class="media-slide"><img src="${s.src}" loading="lazy" data-src="${s.src}" alt="${s.label || 'Issue ' + iss.num + ' spread'}"></div>`
+  ).join("");
+
+  const specs = Object.entries(iss.specsDetail || {}).map(([k, v]) =>
+    `<div class="specs-item"><span class="specs-key">${k}</span><span class="specs-val">${v}</span></div>`
+  ).join("");
+
+  const orderHref = iss.orderUrl || "#";
+
+  const contribHTML = `
+    ${iss.contributors ? `
+    <div class="detail-contributors">
+      <div class="section-label">Contributors</div>
+      <div class="contrib-list">${iss.contributors.map(c => `<div>${c}</div>`).join("")}</div>
+    </div>` : ''}
+    ${iss.interviews ? `
+    <div class="detail-contributors">
+      <div class="section-label">Interviews</div>
+      <div class="contrib-list">${iss.interviews.map(c => `<div>${c}</div>`).join("")}</div>
+    </div>` : ''}`;
+
+  el.innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-left-col">
+        <div class="detail-cover" id="detailMedia">
+          ${iss.cover ? `<img class="media-cover-desktop" src="${iss.cover}" alt="Issue ${iss.num} cover">` : ''}
+          <div class="media-track" id="mediaTrack">${mediaSlides}</div>
+          <button class="media-arrow media-prev" type="button" aria-label="Previous image">←</button>
+          <button class="media-arrow media-next" type="button" aria-label="Next image">→</button>
+          <div class="media-dots" id="mediaDots"></div>
+        </div>
+        ${(iss.contributors || iss.interviews) ? `
+        <div class="detail-contributors-outer detail-contrib-desktop" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--white-15);">
+          ${contribHTML}
+        </div>` : ''}
+      </div>
+      <div class="detail-info">
+        <div class="detail-eyebrow">${iss.available ? 'Available Now' : 'Coming Soon'}</div>
+        <h1 class="detail-title">Issue ${iss.num}</h1>
+        <div class="detail-sub">${iss.specs || ''}</div>
+        ${iss.price ? `<div class="detail-price">${iss.price}</div>` : ''}
+        <p class="detail-desc">${iss.desc || ''}</p>
+        ${iss.available ? `
+        <div class="detail-ship">Ships 1–2 weeks · NYC pickup available</div>
+        <div class="pay-heading">Buy this issue — choose an option</div>
+        <div class="pay-options" id="detailPayment">
+          <a class="pay-opt" href="https://buy.stripe.com/fZu28qfsc66vcO58Ph9k405" target="_blank" rel="noopener noreferrer">
+            <span class="pay-opt-title">Pick Up</span>
+            <span class="pay-opt-price">$35</span>
+            <span class="pay-opt-sub">New York · No shipping fee</span>
+            <span class="pay-opt-cta">Buy Now →</span>
+          </a>
+          <a class="pay-opt" href="https://buy.stripe.com/4gM3cufscbqP6pHd5x9k404" target="_blank" rel="noopener noreferrer">
+            <span class="pay-opt-title">Shipped</span>
+            <span class="pay-opt-price">$41</span>
+            <span class="pay-opt-sub">$35 + $6 domestic shipping</span>
+            <span class="pay-opt-cta">Buy Now →</span>
+          </a>
+        </div>
+        <div class="pay-note">Secure checkout via Stripe</div>` : `<div class="detail-ship">Not yet available</div>`}
+      </div>
+      <div class="detail-sidebar">
+        ${specs ? `
+        <div>
+          <div class="section-label">Specs</div>
+          <div class="specs-dl">${specs}</div>
+        </div>` : ''}
+      </div>
+    </div>
+
+    ${(iss.contributors || iss.interviews) ? `
+    <div class="detail-contributors-outer detail-contrib-mobile">
+      ${contribHTML}
+    </div>` : ''}
+
+    ${spreads ? `
+    <div class="detail-section">
+      <div class="section-label">Spreads</div>
+      <div class="spreads-grid">${spreads}</div>
+    </div>` : ''}
+  `;
+
+  // wire spread clicks
+  el.querySelectorAll(".spread[data-src]").forEach(btn => {
+    btn.addEventListener("click", () => openSpread(btn.dataset.src));
+  });
+
+  initMediaCarousel(el);
+}
+
+/* ── DETAIL MEDIA CAROUSEL (mobile slideshow of cover + spreads) ──
+   One slide is shown at a time so the frame sizes to each image
+   (no letterbox bars, no cropping). Arrows, dots, and swipe navigate. */
+function initMediaCarousel(el) {
+  const track = el.querySelector("#mediaTrack");
+  const dotsWrap = el.querySelector("#mediaDots");
+  const prev = el.querySelector(".media-prev");
+  const next = el.querySelector(".media-next");
+  if (!track) return;
+
+  const slides = Array.from(track.querySelectorAll(".media-slide"));
+
+  dotsWrap.innerHTML = slides.map((_, i) =>
+    `<span class="media-dot${i === 0 ? ' active' : ''}"></span>`).join("");
+  const dots = Array.from(dotsWrap.querySelectorAll(".media-dot"));
+
+  let index = 0;
+  function show(i) {
+    index = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, si) => s.classList.toggle("active", si === index));
+    dots.forEach((d, di) => d.classList.toggle("active", di === index));
+    if (prev) prev.disabled = index <= 0;
+    if (next) next.disabled = index >= slides.length - 1;
+  }
+
+  prev?.addEventListener("click", (e) => { e.stopPropagation(); show(index - 1); });
+  next?.addEventListener("click", (e) => { e.stopPropagation(); show(index + 1); });
+  dots.forEach((d, i) => d.addEventListener("click", (e) => { e.stopPropagation(); show(i); }));
+
+  // Swipe left/right to change slides
+  let startX = 0, startY = 0, moved = false;
+  track.addEventListener("touchstart", (e) => {
+    const t = e.changedTouches[0];
+    startX = t.clientX; startY = t.clientY; moved = false;
+  }, { passive: true });
+  track.addEventListener("touchmove", (e) => {
+    const t = e.changedTouches[0];
+    if (Math.abs(t.clientX - startX) > 8 || Math.abs(t.clientY - startY) > 8) moved = true;
+  }, { passive: true });
+  track.addEventListener("touchend", (e) => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      show(dx < 0 ? index + 1 : index - 1);
+    }
+  }, { passive: true });
+
+  // Tap a spread to view it large in the lightbox (ignored right after a swipe)
+  slides.forEach(s => {
+    const img = s.querySelector("img[data-src]");
+    if (img) s.addEventListener("click", () => { if (!moved) openSpread(img.dataset.src); });
+  });
+
+  show(0);
+}
+
+function openIssueDetail(idx, scrollToPayment) {
+  renderIssueDetail(idx);
+  document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById("tab-issue-detail").classList.add("active");
+  if (scrollToPayment) {
+    setTimeout(() => {
+      const p = document.getElementById("detailPayment");
+      if (p) p.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+/* clicks on any "Order" CTA open the issue detail page */
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-order]");
+  if (!t) return;
+  e.preventDefault();
+  openIssueDetail(parseInt(t.dataset.order, 10));
+});
+
+
+/* ── SPREAD LIGHTBOX ─────────────────────────────────────── */
+function openSpread(src) {
+  const lb = document.getElementById("spreadLB");
+  document.getElementById("spreadLBImg").src = src;
+  lb.classList.add("open");
+}
+function closeSpread() {
+  document.getElementById("spreadLB").classList.remove("open");
+  document.getElementById("spreadLBImg").src = "";
+}
+document.getElementById("spreadLBClose").addEventListener("click", closeSpread);
+document.getElementById("spreadLB").addEventListener("click", e => {
+  if (e.target.id === "spreadLB") closeSpread();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.getElementById("spreadLB").classList.contains("open")) closeSpread();
+});
+
+/* ── RENDER GALLERY ──────────────────────────────────────── */
+function renderGallery() {
+  const items = filteredItems();
+  const grid  = document.getElementById("galleryGrid");
+  grid.innerHTML = items.map((item, visIdx) => `
+    <div class="gallery-item" data-id="${item.id}" data-vis="${visIdx}" role="button" tabindex="0" data-activate aria-label="View ${item.title}">
+      <img class="gallery-img" src="${item.src}" loading="lazy" alt="${item.title}">
+      <div class="gallery-overlay">
+        <div class="gallery-overlay-title">${item.title}</div>
+        <div class="gallery-overlay-meta">${item.meta}</div>
+      </div>
+    </div>`).join("");
+
+  grid.querySelectorAll(".gallery-item").forEach(el => {
+    el.addEventListener("click", () => {
+      lbIndex = parseInt(el.dataset.vis);
+      openLightbox();
+    });
+  });
+}
+
+/* ── LIGHTBOX ────────────────────────────────────────────── */
+function openLightbox() {
+  const items = filteredItems();
+  const item  = items[lbIndex];
+  if (!item) return;
+  const lb = document.getElementById("lightbox");
+  document.getElementById("lbImg").innerHTML       = `<img src="${item.src}" alt="${item.title}">`;
+  document.getElementById("lbTitle").textContent   = item.title;
+  document.getElementById("lbMeta").textContent    = item.meta;
+  lb.classList.add("open");
+}
+
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("open");
+}
+
+document.getElementById("lbClose").addEventListener("click", closeLightbox);
+document.getElementById("lightbox").addEventListener("click", e => {
+  if (e.target === document.getElementById("lightbox")) closeLightbox();
+});
+
+document.getElementById("lbPrev").addEventListener("click", e => {
+  e.stopPropagation();
+  const items = filteredItems();
+  lbIndex = (lbIndex - 1 + items.length) % items.length;
+  openLightbox();
+});
+
+document.getElementById("lbNext").addEventListener("click", e => {
+  e.stopPropagation();
+  const items = filteredItems();
+  lbIndex = (lbIndex + 1) % items.length;
+  openLightbox();
+});
+
+document.addEventListener("keydown", e => {
+  const lb = document.getElementById("lightbox");
+  if (!lb.classList.contains("open")) return;
+  if (e.key === "Escape") closeLightbox();
+  if (e.key === "ArrowLeft") { lbIndex = (lbIndex - 1 + filteredItems().length) % filteredItems().length; openLightbox(); }
+  if (e.key === "ArrowRight") { lbIndex = (lbIndex + 1) % filteredItems().length; openLightbox(); }
+});
+
+
+/* ── KEYBOARD: Enter / Space activates custom (non-native) controls ─────── */
+document.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+  const el = e.target.closest("[data-activate]");
+  if (!el) return;
+  e.preventDefault();
+  el.click();
+});
+
+/* ── TAB ROUTING ─────────────────────────────────────────── */
+document.querySelectorAll(".nav-link[data-tab]").forEach(link => {
+  link.addEventListener("click", () => {
+    const tab = link.dataset.tab;
+    document.querySelectorAll(".nav-link").forEach(l => {
+      l.classList.remove("active");
+      if (l.hasAttribute("aria-selected")) l.setAttribute("aria-selected", "false");
+    });
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    link.classList.add("active");
+    if (link.hasAttribute("aria-selected")) link.setAttribute("aria-selected", "true");
+    const panel = document.getElementById("tab-" + tab);
+    if (panel) panel.classList.add("active");
+  });
+});
+
+/* logo → home (Issues) */
+document.getElementById("logoHome")?.addEventListener("click", e => {
+  e.preventDefault();
+  document.querySelector('.nav-link[data-tab="issues"]')?.click();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+/* ── CLOCK ───────────────────────────────────────────────── */
+function updateClock() {
+  const now = new Date();
+  const el  = document.getElementById("liveTime");
+  if (el) el.textContent = [now.getHours(), now.getMinutes(), now.getSeconds()]
+    .map(n => String(n).padStart(2,"0")).join(":");
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ── BOOK DRAG-TO-ROTATE CONTROLLER ──────────────────────── */
+class BookController {
+  constructor(stage, book, opts = {}) {
+    this.stage = stage;
+    this.book  = book;
+    this.hint  = opts.hint || null;
+    this.rotX  = opts.rotX ?? -12;
+    this.rotY  = opts.rotY ?? -30;
+    this.velX  = 0;
+    this.velY  = 0;
+    this.sens  = opts.sens ?? 0.42;        // deg per px
+    this.friction = opts.friction ?? 0.94;
+    this.minX  = opts.minX ?? -85;
+    this.maxX  = opts.maxX ?? 85;
+    this.restX = opts.rotX ?? -12;
+    this.idle  = !!opts.idle;
+    this.idleSpeed = opts.idleSpeed ?? 0.13;
+    this.idleDelay = opts.idleDelay ?? 1400;
+    this.dragging = false;
+    this.px = 0; this.py = 0;
+    this.lastInteract = performance.now();
+    this._render();
+    this._bind();
+    requestAnimationFrame(this._loop.bind(this));
+  }
+
+  _render() {
+    this.book.style.transform =
+      `rotateX(${this.rotX.toFixed(2)}deg) rotateY(${this.rotY.toFixed(2)}deg)`;
+  }
+
+  _bind() {
+    const s = this.stage;
+    const onDown = e => {
+      this.dragging = true;
+      this.velX = this.velY = 0;
+      this.px = e.clientX; this.py = e.clientY;
+      this.lastInteract = performance.now();
+      if (this.hint) this.hint.classList.add("hide");
+      try { s.setPointerCapture(e.pointerId); } catch (_) {}
+      e.preventDefault();
+    };
+    const onMove = e => {
+      if (!this.dragging) return;
+      const dx = e.clientX - this.px;
+      const dy = e.clientY - this.py;
+      this.px = e.clientX; this.py = e.clientY;
+      this.rotY += dx * this.sens;
+      this.rotX  = Math.max(this.minX, Math.min(this.maxX, this.rotX - dy * this.sens));
+      this.velY  = dx * this.sens;
+      this.velX  = -dy * this.sens;
+      this.lastInteract = performance.now();
+    };
+    const onUp = e => {
+      if (!this.dragging) return;
+      this.dragging = false;
+      this.lastInteract = performance.now();
+      try { s.releasePointerCapture(e.pointerId); } catch (_) {}
+    };
+    s.addEventListener("pointerdown", onDown);
+    s.addEventListener("pointermove", onMove);
+    s.addEventListener("pointerup", onUp);
+    s.addEventListener("pointercancel", onUp);
+  }
+
+  _loop(now) {
+    if (!this.dragging) {
+      // inertial glide after release
+      this.rotY += this.velY;
+      this.rotX  = Math.max(this.minX, Math.min(this.maxX, this.rotX + this.velX));
+      this.velY *= this.friction;
+      this.velX *= this.friction;
+      if (Math.abs(this.velY) < 0.02) this.velY = 0;
+      if (Math.abs(this.velX) < 0.02) this.velX = 0;
+
+      // resume gentle auto-rotation from wherever it was left
+      if (this.idle && this.velX === 0 && this.velY === 0 &&
+          now - this.lastInteract > this.idleDelay) {
+        this.rotY += this.idleSpeed;
+      }
+    }
+    this._render();
+    requestAnimationFrame(this._loop.bind(this));
+  }
+}
+
+/* ── INTRO: VIDEO → WIN95 BLOCK DISSOLVE INTO SITE ─────────── */
+(function () {
+  const overlay = document.getElementById('intro-overlay');
+  const video   = document.getElementById('intro-video');
+  const skip    = document.getElementById('intro-skip');
+
+  if (sessionStorage.getItem('login-intro-seen')) {
+    if (overlay) overlay.remove();
+    return;
+  }
+  sessionStorage.setItem('login-intro-seen', '1');
+
+  if (!overlay || !video) return;
+
+  video.playbackRate = 1;
+
+  function win95Dissolve() {
+    const W = window.innerWidth, H = window.innerHeight;
+    const BLOCK = 28;
+    const cols = Math.ceil(W / BLOCK);
+    const rows = Math.ceil(H / BLOCK);
+
+    // canvas sits above everything while transition runs
+    const cvs = document.createElement('canvas');
+    cvs.width = W; cvs.height = H;
+    cvs.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:10000;pointer-events:none';
+    document.body.appendChild(cvs);
+    const ctx = cvs.getContext('2d');
+
+    // fill with Windows 95 navy
+    ctx.fillStyle = '#000080';
+    ctx.fillRect(0, 0, W, H);
+
+    // subtle horizontal scanlines
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    for (let y = 0; y < H; y += 2) ctx.fillRect(0, y, W, 1);
+
+    // drop the video overlay now that canvas covers it
+    overlay.remove();
+
+    // build shuffled block list for random dissolve
+    const blocks = [];
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        blocks.push([c * BLOCK, r * BLOCK]);
+    for (let i = blocks.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+    }
+
+    const DISSOLVE = 1100;
+    const t0 = performance.now();
+
+    function frame(ts) {
+      const p = Math.min((ts - t0) / DISSOLVE, 1);
+      const eased = 1 - Math.pow(1 - p, 2.2);
+      const n = Math.floor(eased * blocks.length);
+      for (let i = 0; i < n; i++) {
+        ctx.clearRect(blocks[i][0], blocks[i][1], BLOCK, BLOCK);
+      }
+      if (p < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        cvs.style.transition = 'opacity 0.55s ease';
+        cvs.style.opacity = '0';
+        setTimeout(() => cvs.remove(), 560);
+        // let the email popup know the intro is finished
+        document.dispatchEvent(new Event('login:introdone'));
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  const failsafe = setTimeout(win95Dissolve, 60000);
+
+  function trigger() {
+    clearTimeout(failsafe);
+    win95Dissolve();
+  }
+
+  video.addEventListener('ended', trigger);
+  if (skip) skip.addEventListener('click', trigger);
+}());
+
+/* ── HERO BOOK FIT ──────────────────────────────────────────── */
+function fitHeroBook() {
+  const chrome = ['header','nav'].reduce((sum, sel) => {
+    const el = document.querySelector(sel);
+    return sum + (el ? el.offsetHeight : 0);
+  }, 0);
+  const avH   = window.innerHeight - chrome;
+  const avW   = window.innerWidth  * 0.52;
+  // leave 52px (28+24) for hero padding in scale calculation
+  const byH   = ((avH - 52) * 0.82) / 136;
+  const byW   = (avW * 0.72) / 100;
+  const scale = Math.min(byH, byW, 6);
+  const root  = document.documentElement;
+  root.style.setProperty('--hero-h',           avH + 'px');
+  root.style.setProperty('--hero-scale',        scale.toFixed(3));
+  root.style.setProperty('--hero-perspective',  (100 * scale * 4.5).toFixed(0) + 'px');
+}
+
+/* ── INIT ────────────────────────────────────────────────── */
+renderIssues();
+renderGallery();
+fitHeroBook();
+window.addEventListener('resize', fitHeroBook);
+
+let heroCtrl = null;
+const heroBook  = document.getElementById("book-hero");
+const heroStage = heroBook?.closest(".hero-book-stage");
+const heroHint  = heroStage?.querySelector(".drag-hint");
+if (heroBook && heroStage) {
+  heroCtrl = new BookController(heroStage, heroBook, {
+    rotX: -10, rotY: -32, idle: true, idleSpeed: 0.11, hint: heroHint
+  });
+}
+
+/* ── IN-PLACE FLIP-BOOK: click the hero book → it opens where it floats,
+      flip through the spreads, and on the last page it closes and spins again ── */
+(function () {
+  const trigger   = document.getElementById("heroBookTrigger");
+  const bookStage = trigger ? trigger.querySelector(".hero-book-stage") : null;
+  const fb        = document.getElementById("flipbook");
+  if (!trigger || !fb) return;
+
+  const viewport  = document.getElementById("fbViewport");
+  const leftEl    = document.getElementById("fbLeft");
+  const rightEl   = document.getElementById("fbRight");
+  const leaf      = document.getElementById("fbLeaf");
+  const leafFront = document.getElementById("fbLeafFront");
+  const leafBack  = document.getElementById("fbLeafBack");
+  const counter   = document.getElementById("fbCounter");
+
+  /* Two-page spread exports, ordered by printed page number */
+  const SPREADS = [
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE2.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE4.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE6.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE14.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE18.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE24.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE28.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE33.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE35.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE47.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE52.png",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE61.png"
+  ];
+  const url = i => 'url("' + SPREADS[i] + '")';
+
+  let index  = 0;
+  let isOpen = false;
+  let busy   = false;
+
+  function paintStatic(i) {
+    leftEl.style.backgroundImage     = url(i);
+    leftEl.style.backgroundPosition  = "left center";
+    rightEl.style.backgroundImage    = url(i);
+    rightEl.style.backgroundPosition = "right center";
+    counter.textContent = String(i + 1).padStart(2, "0") + " / " +
+                          String(SPREADS.length).padStart(2, "0");
+  }
+  function preload(i) {
+    if (i < 0 || i >= SPREADS.length) return;
+    const im = new Image();
+    im.src = SPREADS[i];
+  }
+
+  function open() {
+    if (isOpen) return;
+    isOpen = true;
+    index  = 0;
+    if (heroCtrl) heroCtrl.idle = false;      // stop the auto-spin
+    paintStatic(0);
+    preload(1);
+    fb.setAttribute("aria-hidden", "false");
+    if (bookStage) bookStage.style.visibility = "hidden";
+    fb.classList.add("open", "folded");        // start shut, then unfold
+    requestAnimationFrame(() => requestAnimationFrame(() => fb.classList.remove("folded")));
+    document.getElementById("fbClose").focus();
+  }
+
+  function finishClose() {
+    fb.classList.remove("open", "folded");
+    fb.setAttribute("aria-hidden", "true");
+    if (bookStage) bookStage.style.visibility = "";
+    if (heroCtrl) { heroCtrl.idle = true; heroCtrl.lastInteract = performance.now(); }
+    isOpen = false;
+    if (trigger.focus) trigger.focus();
+  }
+  function close() {
+    if (!isOpen || busy) return;
+    fb.classList.add("folded");                // fold shut, then hand back to the 3D book
+    let done = false;
+    const onEnd = e => {
+      if (e.target !== viewport || done) return;
+      done = true;
+      viewport.removeEventListener("transitionend", onEnd);
+      finishClose();
+    };
+    viewport.addEventListener("transitionend", onEnd);
+    setTimeout(() => { if (!done && isOpen) { done = true; viewport.removeEventListener("transitionend", onEnd); finishClose(); } }, 650);
+  }
+
+  function turn(dir) {                          // +1 forward, -1 back
+    if (busy || !isOpen) return;
+    const target = index + dir;
+    if (target < 0) return;
+    if (target >= SPREADS.length) { close(); return; }   // past the last page → close
+    busy = true;
+    preload(target + dir);
+
+    leaf.classList.remove("forward", "backward", "turning");
+    if (dir > 0) {
+      leaf.classList.add("active", "forward");
+      leafFront.style.backgroundImage    = url(index);
+      leafFront.style.backgroundPosition = "right center";
+      leafBack.style.backgroundImage     = url(target);
+      leafBack.style.backgroundPosition  = "left center";
+      rightEl.style.backgroundImage      = url(target);   // reveal next right page beneath
+      rightEl.style.backgroundPosition   = "right center";
+      leaf.style.transform = "rotateY(0deg)";
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        leaf.classList.add("turning");
+        leaf.style.transform = "rotateY(-180deg)";
+      }));
+    } else {
+      leaf.classList.add("active", "backward");
+      leafFront.style.backgroundImage    = url(index);
+      leafFront.style.backgroundPosition = "left center";
+      leafBack.style.backgroundImage     = url(target);
+      leafBack.style.backgroundPosition  = "right center";
+      leftEl.style.backgroundImage       = url(target);   // reveal prev left page beneath
+      leftEl.style.backgroundPosition    = "left center";
+      leaf.style.transform = "rotateY(0deg)";
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        leaf.classList.add("turning");
+        leaf.style.transform = "rotateY(180deg)";
+      }));
+    }
+
+    let settled = false;
+    const settle = e => {
+      if (e && (e.target !== leaf || e.propertyName !== "transform")) return;
+      if (settled) return;
+      settled = true;
+      leaf.removeEventListener("transitionend", settle);
+      index = target;
+      paintStatic(index);
+      leaf.classList.remove("active", "turning", "forward", "backward");
+      leaf.style.transform = "";
+      busy = false;
+    };
+    leaf.addEventListener("transitionend", settle);
+    setTimeout(() => settle(), 900);            // failsafe
+  }
+
+  document.getElementById("fbPrev").addEventListener("click", e => { e.stopPropagation(); turn(-1); });
+  document.getElementById("fbNext").addEventListener("click", e => { e.stopPropagation(); turn(1); });
+  document.getElementById("fbClose").addEventListener("click", e => { e.stopPropagation(); close(); });
+  // keep flipbook interaction from bubbling to the hero trigger (which would re-open)
+  fb.addEventListener("pointerdown", e => e.stopPropagation());
+  fb.addEventListener("pointerup",   e => e.stopPropagation());
+
+  document.addEventListener("keydown", e => {
+    if (!isOpen) return;
+    if (e.key === "Escape")           close();
+    else if (e.key === "ArrowRight")  turn(1);
+    else if (e.key === "ArrowLeft")   turn(-1);
+  });
+
+  /* hero trigger: a click (not a drag) opens the book; drag still rotates it */
+  let down = false, sx = 0, sy = 0, moved = false;
+  trigger.addEventListener("pointerdown", e => { if (isOpen) return; down = true; moved = false; sx = e.clientX; sy = e.clientY; });
+  trigger.addEventListener("pointermove", e => {
+    if (down && (Math.abs(e.clientX - sx) > 6 || Math.abs(e.clientY - sy) > 6)) moved = true;
+  });
+  trigger.addEventListener("pointerup", () => { if (down && !moved && !isOpen) open(); down = false; });
+  trigger.addEventListener("pointercancel", () => { down = false; });
+  trigger.addEventListener("keydown", e => {
+    if (isOpen) return;
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") { e.preventDefault(); open(); }
+  });
+}());
+
+/* ── SUBMIT FORM ─────────────────────────────────────────── */
+(function () {
+  const form = document.getElementById("submitForm");
+  if (!form) return;
+  const btn    = document.getElementById("formSubmitBtn");
+  const status = document.getElementById("formStatus");
+
+  // Files require FormSubmit's standard (non-AJAX) endpoint, which redirects
+  // after sending — so we send it back to this page with ?submitted=1.
+  const next = document.createElement("input");
+  next.type = "hidden";
+  next.name = "_next";
+  next.value = location.origin + location.pathname + "?submitted=1#submit-anchor";
+  form.appendChild(next);
+
+  form.addEventListener("submit", () => {
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+  });
+
+  // On return from a successful submission, switch to Submit and confirm.
+  if (new URLSearchParams(location.search).get("submitted") === "1") {
+    const submitLink = document.querySelector('.nav-link[data-tab="submit"]');
+    if (submitLink) submitLink.click();
+    if (status) {
+      status.className = "form-status ok show";
+      status.textContent = "Thank you — your submission was sent. We review on a rolling basis and will reply to the email you provided.";
+    }
+    form.reset();
+    history.replaceState(null, "", location.pathname);
+    status?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}());
+
+/* ── MOBILE NAV ──────────────────────────────────────────────── */
+(function () {
+  const hamburger = document.getElementById('navHamburger');
+  const navWrap   = document.getElementById('navLinksWrap');
+  if (!hamburger || !navWrap) return;
+
+  hamburger.addEventListener('click', () => {
+    const isOpen = navWrap.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+    hamburger.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  // Close nav when any tab link is tapped on mobile
+  document.querySelectorAll('.nav-link[data-tab]').forEach(link => {
+    link.addEventListener('click', () => {
+      navWrap.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  // Close nav on outside tap
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.nav') && !e.target.closest('#navHamburger') && navWrap.classList.contains('open')) {
+      navWrap.classList.remove('open');
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+    }
+  });
+}());
+
+/* ── EMAIL POPUP → private Google Sheet (Apps Script Web App) ─────────────
+   SETUP (Calder, once): create a Google Sheet, add an Apps Script doPost that
+   appendRow()s [Timestamp, Email, Source], deploy as a Web App (execute as Me,
+   access Anyone), then paste the /exec URL below. Until then, submissions are
+   accepted optimistically but not stored. */
+(function () {
+  const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
+
+  const KEY   = 'login-email-popup';           // localStorage: 'dismissed' | 'subscribed'
+  const popup = document.getElementById('email-popup');
+  if (!popup) return;
+  let stored;
+  try { stored = localStorage.getItem(KEY); } catch (_) { stored = null; }
+  if (stored) return;                          // already handled on this browser
+
+  const card   = popup.querySelector('.email-card');
+  const form   = document.getElementById('epForm');
+  const email  = document.getElementById('epEmail');
+  const hp      = document.getElementById('epHp');
+  const errEl  = document.getElementById('epError');
+  const msgEl  = document.getElementById('epMsg');
+  const closeBtn = document.getElementById('epClose');
+  const noBtn  = document.getElementById('epNo');
+
+  let shown = false, armed = false, lastFocus = null;
+
+  function remember(v) { try { localStorage.setItem(KEY, v); } catch (_) {} }
+
+  function focusables() {
+    return [...card.querySelectorAll('button, [href], input, select, textarea')]
+      .filter(el => !el.disabled && el.offsetParent !== null && el.tabIndex !== -1);
+  }
+  function onKey(e) {
+    if (e.key === 'Escape') { close('dismissed'); return; }
+    if (e.key !== 'Tab') return;
+    const f = focusables();
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  function show() {
+    if (shown || stored) return;
+    // never sit on top of the intro or another open overlay
+    if (document.getElementById('intro-overlay')) return;
+    shown = true;
+    lastFocus = document.activeElement;
+    popup.classList.add('open');
+    popup.setAttribute('aria-hidden', 'false');
+    document.addEventListener('keydown', onKey);
+    setTimeout(() => email.focus(), 40);
+  }
+  function close(persist) {
+    popup.classList.remove('open');
+    popup.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onKey);
+    if (persist) { remember(persist); stored = persist; }
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function arm() {
+    if (armed || stored) return;
+    armed = true;
+    const timer = setTimeout(show, 6500);      // 5–8s after the intro is gone
+    function onLeave(e) {                       // …or exit-intent, whichever first
+      if (!e.relatedTarget && e.clientY <= 0) {
+        clearTimeout(timer);
+        document.removeEventListener('mouseout', onLeave);
+        show();
+      }
+    }
+    document.addEventListener('mouseout', onLeave);
+  }
+
+  // Wait until the intro is finished before arming the triggers.
+  if (!document.getElementById('intro-overlay')) {
+    arm();                                      // intro already done / never shown
+  } else {
+    document.addEventListener('login:introdone', arm, { once: true });
+    setTimeout(arm, 65000);                     // failsafe if the event never fires
+  }
+
+  closeBtn.addEventListener('click', () => close('dismissed'));
+  noBtn.addEventListener('click', () => close('dismissed'));
+  popup.addEventListener('click', e => { if (e.target === popup) close('dismissed'); });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (hp && hp.value) { close('dismissed'); return; }          // honeypot → silent drop
+    const value = email.value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) {
+      errEl.hidden = false;
+      email.focus();
+      return;
+    }
+    errEl.hidden = true;
+    // fire-and-forget; no-cors means we can't read the response → optimistic UI
+    if (APPS_SCRIPT_URL.indexOf('http') === 0) {
+      try {
+        fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: new URLSearchParams({ email: value, source: 'popup' })
+        }).catch(() => {});
+      } catch (_) {}
+    }
+    remember('subscribed'); stored = 'subscribed';
+    form.hidden = true;
+    msgEl.hidden = false;
+    setTimeout(() => close(), 1200);
+  });
+}());
+</script>
+</body>
+</html>

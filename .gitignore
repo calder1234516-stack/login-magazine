@@ -1,0 +1,15 @@
+# Local working material — not used by the published site
+outputs/
+music/
+gallery/
+cursor/
+login new logo web/
+LOGIN-MAGAZINE-ADJUSTMENTS-PLAN.md
+
+# Large unreferenced video (keep repo lean)
+*.mov
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+desktop.ini
