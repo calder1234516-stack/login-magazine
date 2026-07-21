@@ -1640,13 +1640,15 @@
     display: grid;
     grid-template-columns: 42% 58%;
     gap: 0;
-    align-items: center;
+    align-items: start;               /* pin the info column to the top, right below the nav */
     height: var(--hero-h, calc(100vh - 130px));
     padding: 28px 0 24px;
     border-bottom: 1px solid var(--white-15);
     margin-bottom: 0;
     overflow: clip;
   }
+  /* keep the 3D book vertically centered even though the row is top-aligned */
+  .hero-right { align-self: stretch; }
 
   /* about video: crop letterbox bars */
   .about-video-wrap {
@@ -1841,21 +1843,29 @@
     .pay-opt-sub { font-size: 12px; }
     .pay-opt-cta { margin-top: 10px; padding: 12px 16px; }
 
-    /* Mobile: hide the flat cover, show the spreads as a swipeable slideshow.
-       Each slide sizes to its own image so there are no letterbox bars and
-       nothing is cropped — the frame resizes for each spread. */
-    .media-cover-desktop { display: none; }
+    /* Mobile: hide the flat digital cover, show only the product-shot spreads
+       as a swipeable slideshow. Each slide sizes to its own image so there are
+       no letterbox bars and nothing is cropped — the frame resizes per spread.
+       Selector must out-specify the base `.detail-cover img` rule. */
+    .detail-cover .media-cover-desktop { display: none; }
     .detail-cover {
       max-width: 300px;
       margin: 0 auto;
-      aspect-ratio: auto;
+      aspect-ratio: 3 / 2;        /* stable frame (spreads are all ~3:2) so it never jumps size */
       height: auto;
       background: transparent;
     }
-    .media-track { display: block; height: auto; }
-    .media-slide { display: none; height: auto; }
-    .media-slide.active { display: block; }
-    .detail-cover img { height: auto; object-fit: contain; }
+    /* Slides stack and crossfade instead of hard-cutting — smooth on click/swipe */
+    .media-track { display: block; height: 100%; position: relative; }
+    .media-slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.32s ease;
+    }
+    .media-slide.active { opacity: 1; pointer-events: auto; }
+    .detail-cover img { height: 100%; object-fit: contain; }
     .media-arrow {
       display: flex;
       align-items: center;
@@ -2485,15 +2495,11 @@ function initMediaCarousel(el) {
   next?.addEventListener("click", (e) => { e.stopPropagation(); show(index + 1); });
   dots.forEach((d, i) => d.addEventListener("click", (e) => { e.stopPropagation(); show(i); }));
 
-  // Swipe left/right to change slides
-  let startX = 0, startY = 0, moved = false;
+  // Swipe left/right to change slides (no tap-to-open — browsing stays on the page)
+  let startX = 0, startY = 0;
   track.addEventListener("touchstart", (e) => {
     const t = e.changedTouches[0];
-    startX = t.clientX; startY = t.clientY; moved = false;
-  }, { passive: true });
-  track.addEventListener("touchmove", (e) => {
-    const t = e.changedTouches[0];
-    if (Math.abs(t.clientX - startX) > 8 || Math.abs(t.clientY - startY) > 8) moved = true;
+    startX = t.clientX; startY = t.clientY;
   }, { passive: true });
   track.addEventListener("touchend", (e) => {
     const t = e.changedTouches[0];
@@ -2503,11 +2509,8 @@ function initMediaCarousel(el) {
     }
   }, { passive: true });
 
-  // Tap a spread to view it large in the lightbox (ignored right after a swipe)
-  slides.forEach(s => {
-    const img = s.querySelector("img[data-src]");
-    if (img) s.addEventListener("click", () => { if (!moved) openSpread(img.dataset.src); });
-  });
+  // Note: slides intentionally do NOT open a lightbox — the carousel is
+  // scroll/swipe only, so browsing spreads never leaves the page.
 
   show(0);
 }
@@ -2745,6 +2748,43 @@ class BookController {
     this._render();
     requestAnimationFrame(this._loop.bind(this));
   }
+
+  /* Whip the book through a few fast rotations, decelerate, and land
+     flat & face-on to the viewer — then run the callback (open the spreads).
+     rotX flattens to 0 so the cover faces you square, like a magazine
+     being turned to open. */
+  spinToFront(cb, opts = {}) {
+    const turns = opts.turns ?? 3;
+    const dur   = opts.duration ?? 1300;
+    this.idle = false;
+    this.dragging = false;
+    this.velX = this.velY = 0;
+    if (this.hint) this.hint.classList.add("hide");
+
+    const startY = this.rotY;
+    const startX = this.rotX;
+    // land on a multiple of 360° (front cover square to the viewer), spinning forward
+    const targetY = startY - (((startY % 360) + 360) % 360) + 360 * turns;
+    const t0 = performance.now();
+    // easeOutQuart: snaps into a fast spin, then eases smoothly to rest
+    const ease = p => 1 - Math.pow(1 - p, 4);
+
+    const step = now => {
+      const p = Math.min((now - t0) / dur, 1);
+      const e = ease(p);
+      this.rotY = startY + (targetY - startY) * e;
+      this.rotX = startX + (0 - startX) * e;
+      if (p < 1) {
+        requestAnimationFrame(step);
+      } else {
+        this.rotY = targetY;
+        this.rotX = 0;
+        this._render();
+        if (cb) cb();
+      }
+    };
+    requestAnimationFrame(step);
+  }
 }
 
 /* ── INTRO: VIDEO → WIN95 BLOCK DISSOLVE INTO SITE ─────────── */
@@ -2765,7 +2805,7 @@ class BookController {
 
   function win95Dissolve() {
     const W = window.innerWidth, H = window.innerHeight;
-    const BLOCK = 28;
+    const BLOCK = 14;   // smaller pixels as the landing dissolves out
     const cols = Math.ceil(W / BLOCK);
     const rows = Math.ceil(H / BLOCK);
 
@@ -2821,9 +2861,12 @@ class BookController {
   }
 
   const failsafe = setTimeout(win95Dissolve, 60000);
+  // Keep the landing on screen only ~1.5s, then dissolve out regardless of video length
+  const autoAdvance = setTimeout(trigger, 1500);
 
   function trigger() {
     clearTimeout(failsafe);
+    clearTimeout(autoAdvance);
     win95Dissolve();
   }
 
@@ -3031,6 +3074,29 @@ if (heroBook && heroStage) {
     if (isOpen) return;
     if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") { e.preventDefault(); open(); }
   });
+
+  /* Auto-open: after the intro clears, let the book gently spin for ~5s,
+     then whip it through a fast spin that decelerates face-on and opens
+     into the spreads — one fluid motion. Cancels if the visitor grabs it. */
+  let autoOpenCancelled = false;
+  const cancelAutoOpen = () => { autoOpenCancelled = true; };
+  trigger.addEventListener("pointerdown", cancelAutoOpen, { once: true });
+  function scheduleAutoOpen() {
+    setTimeout(() => {
+      if (isOpen || autoOpenCancelled) return;
+      const openSpreads = () => { if (!isOpen && !autoOpenCancelled) open(); };
+      if (heroCtrl && heroCtrl.spinToFront) {
+        heroCtrl.spinToFront(openSpreads, { turns: 3, duration: 1300 });
+      } else {
+        openSpreads();
+      }
+    }, 5000);
+  }
+  if (document.getElementById("intro-overlay")) {
+    document.addEventListener("login:introdone", scheduleAutoOpen, { once: true });
+  } else {
+    scheduleAutoOpen();                 // intro already seen this session / not shown
+  }
 }());
 
 /* ── SUBMIT FORM ─────────────────────────────────────────── */
