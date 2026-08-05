@@ -8,7 +8,7 @@
 <title>Login Magazine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Archivo:ital,wght@0,300..800;1,300..500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -21,8 +21,8 @@
     --white-35: rgba(255,255,255,0.35);    /* thin borders / dividers only */
     --white-15: rgba(255,255,255,0.15);
     --white-08: rgba(255,255,255,0.08);
-    --font: 'Plus Jakarta Sans', sans-serif;
-    --display: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+    --font: 'Archivo', sans-serif;
+    --display: 'Space Grotesk', 'Archivo', sans-serif;
   }
 
   html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -240,7 +240,9 @@
     perspective: 1000px;
     margin-bottom: 18px;
     cursor: grab;
-    touch-action: none;
+    /* pan-y leaves vertical swipes to the page, so touching the book never
+       swallows a scroll — horizontal drags still reach the rotation handler */
+    touch-action: pan-y;
     position: relative;
   }
   .book-stage:active { cursor: grabbing; }
@@ -1370,6 +1372,8 @@
     height: 100%;
     width: 50%;
     background-color: #fff;
+    /* Each source file is a whole two-page spread, so a pane blows it up to
+       200% width and slides to the half it needs (see .fb-left/.fb-right). */
     background-size: 200% 100%;
     background-repeat: no-repeat;
     backface-visibility: hidden;
@@ -1409,7 +1413,7 @@
   .fb-leaf-face {
     position: absolute; inset: 0;
     background-color: #fff;
-    background-size: 200% 100%;
+    background-size: 200% 100%;     /* half a spread per face, as .fb-page */
     background-repeat: no-repeat;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
@@ -1766,7 +1770,7 @@
     perspective: var(--hero-perspective, 2000px);
     overflow: visible;
     cursor: grab;
-    touch-action: none;
+    touch-action: pan-y;            /* see .book-stage — never eat a scroll */
     position: relative;
   }
   .hero-book-stage:active { cursor: grabbing; }
@@ -1843,15 +1847,29 @@
     .pay-opt-sub { font-size: 12px; }
     .pay-opt-cta { margin-top: 10px; padding: 12px 16px; }
 
-    /* Mobile: hide the flat digital cover, show only the product-shot spreads
-       as a swipeable slideshow. Each slide sizes to its own image so there are
-       no letterbox bars and nothing is cropped — the frame resizes per spread.
-       Selector must out-specify the base `.detail-cover img` rule. */
+    /* Phone running order: cover → title/price → buy → credits → description.
+       .detail-info is a flex column, so bumping the description's order is
+       enough to drop it below everything else in the column. */
+    .detail-desc {
+      order: 1;
+      margin-top: 26px;
+      margin-bottom: 0;
+      max-width: none;
+    }
+    .detail-contrib-mobile {
+      margin-top: 26px;
+      padding-top: 22px;
+      gap: 22px;
+    }
+
+    /* Mobile: hide the flat digital cover, show the product shots as a swipeable
+       slideshow. They're all shot ~3:2, so the frame is fixed and never jumps
+       size between slides; `contain` keeps every shot uncropped inside it. */
     .detail-cover .media-cover-desktop { display: none; }
     .detail-cover {
-      max-width: 300px;
+      max-width: 340px;
       margin: 0 auto;
-      aspect-ratio: 3 / 2;        /* stable frame (spreads are all ~3:2) so it never jumps size */
+      aspect-ratio: 3 / 2;
       height: auto;
       background: transparent;
     }
@@ -1932,13 +1950,41 @@
     .spreads-grid { grid-template-columns: repeat(2, 1fr); }
     .main { padding: 28px 20px 40px; }
   }
+
+  /* ── ASCII SCRAMBLE (headers on hover) ───────────────────── */
+  /* Injected around header text while the effect runs, then removed.
+     Each character is locked to its original width so swapping glyphs
+     never reflows the line. */
+  /* ── AMBIENT VIDEO ───────────────────────────────────────── */
+  /* Decorative clips: never interactive, and no native chrome. Safari/iOS
+     paint a play button over a paused inline video, so playAmbientVideos()
+     keeps them running (see script) and this hides the control layer. */
+  .ambient-video { pointer-events: none; }
+  .ambient-video::-webkit-media-controls,
+  .ambient-video::-webkit-media-controls-start-playback-button,
+  .ambient-video::-webkit-media-controls-overlay-play-button {
+    display: none !important;
+    -webkit-appearance: none;
+    opacity: 0;
+  }
+
+  .ascii-word { white-space: nowrap; }
+  .ascii-char {
+    display: inline-block;
+    text-align: center;
+    vertical-align: baseline;
+    /* no overflow/clipping here — it would move the inline-block baseline
+       to its margin edge and grow every line box the text sits in */
+  }
 </style>
 </head>
 <body>
 
 <!-- INTRO OVERLAY — shown once per session -->
 <div id="intro-overlay">
-  <video id="intro-video" src="video/loginwebvideo.mp4" autoplay muted playsinline></video>
+  <video id="intro-video" class="ambient-video" src="video/loginwebvideo.mp4"
+         autoplay muted playsinline preload="auto"
+         disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
   <div id="intro-logo-wrap">
     <img src="new logo.svg" alt="LOGIN Magazine">
   </div>
@@ -2057,14 +2103,24 @@
     <div class="about-row" style="display:flex; gap:40px; align-items:flex-start; flex-wrap:wrap;">
       <div class="about-text" style="flex:1; min-width:260px; display:flex; flex-direction:column; gap:20px;">
         <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
-          LOGIN magazine is a print publication documenting digital life, art, and culture and the experience of living online where identity, consumption, and technology continuously intersect. Through essays, visual work, and contributions from artists, designers, and technologists, the magazine explores how digital systems shape culture, behavior, and perception. Designed as a physical artifact, LOGIN slows the feed into something meant to be held, revisited, and archived.
+          Login is a print publication documenting digital art, life, and culture. Each issue explores the experience of living online, where identity, consumption, and technology continuously intersect.
+        </p>
+        <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+          Login exists at a moment when culture and technology are fully entangled. Through essays, visual work, and contributions from artists, designers, and technologists, Login explores how digital systems shape culture, behavior, and perception. By doing this, Login investigates the labor, platforms, and theory behind modern networked culture.
+        </p>
+        <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+          Login is critical of technology because it's worth caring about. It treats the conditions of networked culture as objects of real study: the politics of a platform, the design of a feed, the economy underneath a trend, with the aim of understanding a world increasingly shaped by the internet. Login believes conversation and community are how better alternatives get built, and it invites artists, designers, and technologists to imagine what those alternatives could look like.
+        </p>
+        <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+          Designed as a physical artifact, Login slows the feed into something meant to be held, revisited, and archived.
         </p>
         <p style="font-size:12px; font-weight:400; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:8px;">
           Published by Calder Anderson — New York
         </p>
       </div>
       <div class="about-video-wrap" style="flex:1; min-width:260px; overflow:hidden;">
-        <video autoplay muted loop playsinline
+        <video class="ambient-video" autoplay muted loop playsinline preload="auto"
+          disablepictureinpicture aria-hidden="true" tabindex="-1"
           style="width:100%; height:100%; object-fit:cover; display:block; border:none; outline:none; background:#000;"
           src="video/pixelCrashVideo-1770081926914.mp4"></video>
       </div>
@@ -2203,30 +2259,6 @@
   <img id="spreadLBImg" src="" alt="">
 </div>
 
-<!-- EMAIL POPUP — disabled for now. Delete this comment wrapper (the line below
-     and the closing "-->" further down) to re-enable the "Join the List" popup.
-     The popup's script auto-no-ops while this element is absent. -->
-<!--
-<div class="email-popup" id="email-popup" role="dialog" aria-modal="true" aria-labelledby="epTitle" aria-hidden="true">
-  <div class="email-card">
-    <button class="email-close" id="epClose" type="button" aria-label="Close">×</button>
-    <div class="email-eyebrow">LOGIN — The List</div>
-    <h2 class="email-title" id="epTitle">Get Issue 02 First.</h2>
-    <p class="email-sub">Join the list for first access to new issues, drops, and events. No spam — just LOGIN.</p>
-    <form class="email-form" id="epForm" novalidate>
-      <input type="text" name="_hp" class="form-hp" id="epHp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <label class="form-hp" for="epEmail">Email</label>
-      <input type="email" name="email" class="form-input" id="epEmail" placeholder="you@email.com" autocomplete="email" required>
-      <div class="email-error" id="epError" role="alert" hidden>Please enter a valid email address.</div>
-      <button type="submit" class="form-submit" id="epSubmit">Join the List →</button>
-      <button type="button" class="email-nothanks" id="epNo">No thanks</button>
-    </form>
-    <p class="email-msg" id="epMsg" role="status" hidden>You're on the list. ✓</p>
-  </div>
-</div>
--->
-
-
 <footer class="footer">
   <span>LOGIN Magazine © 2025–2026</span>
   <div class="footer-links">
@@ -2272,20 +2304,23 @@ const issues = [
       "Shipping":   "Ships 1–2 weeks after purchase",
       "Pickup":     "Local pickup available for NYC orders"
     },
-    /* Spreads — real product shots. Items without `src` show as placeholders. */
+    /* Spreads — real product shots. Items without `src` show as placeholders.
+       The two shots of the object itself lead, because on mobile this list is
+       the slideshow: the first thing a buyer sees should be the magazine, not
+       a page out of it. */
     spreads: [
       { src: "spreads/LOGIN PRODUCT SHOTS-18.png", label: "Front Cover", fold: false },
       { src: "spreads/LOGIN PRODUCT SHOTS-20.png", label: "The .exe Issue", fold: false },
       { src: "spreads/LOGIN PRODUCT SHOTS-17.png", label: "Table of Contents" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-15.png", label: "Songs Of Other Times" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-14.png", label: "Hands Together, Eyes Closed" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-23.png", label: "Aidan Walker on the meme resistance" },
       { src: "spreads/LOGIN PRODUCT SHOTS-22.png", label: "Issue 01 spread" },
-      { src: "spreads/LOGIN PRODUCT SHOTS-23.png", label: "Issue 01 spread" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-10.png", label: "Zane Kind" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-06.png", label: "Tabi Cass" },
+      { src: "spreads/LOGIN PRODUCT SHOTS-03.png", label: "Human After All" },
       { src: "spreads/LOGIN PRODUCT SHOTS-01.png", label: "Against the Stream" },
-      { src: "spreads/LOGIN PRODUCT SHOTS-03.png", label: "Issue 01 spread" },
-      { src: "spreads/LOGIN PRODUCT SHOTS-06.png", label: "Issue 01 spread" },
-      { src: "spreads/LOGIN PRODUCT SHOTS-10.png", label: "Issue 01 spread" },
-      { src: "spreads/LOGIN PRODUCT SHOTS-13.png", label: "Issue 01 spread" },
-      { src: "spreads/LOGIN PRODUCT SHOTS-14.png", label: "Issue 01 spread" },
-      { src: "spreads/LOGIN PRODUCT SHOTS-15.png", label: "Issue 01 spread" }
+      { src: "spreads/LOGIN PRODUCT SHOTS-13.png", label: "Post-Modern Sleaze" }
     ]
   }
   /* push new issues here — grid reflows automatically */
@@ -2379,7 +2414,7 @@ function renderIssueDetail(idx) {
        </div>`).join("");
 
   /* Media carousel slides: the spread images in order (no separate cover slide).
-     Desktop shows only the first spread; mobile turns this into a swipeable slideshow. */
+     Desktop shows only the flat cover; mobile turns this into a swipeable slideshow. */
   const mediaSlides = (iss.spreads || []).filter(s => s.src).map(s =>
     `<div class="media-slide"><img src="${s.src}" loading="lazy" data-src="${s.src}" alt="${s.label || 'Issue ' + iss.num + ' spread'}"></div>`
   ).join("");
@@ -2427,13 +2462,15 @@ function renderIssueDetail(idx) {
         <div class="detail-ship">Ships 1–2 weeks · NYC pickup available</div>
         <div class="pay-heading">Buy this issue — choose an option</div>
         <div class="pay-options" id="detailPayment">
-          <a class="pay-opt" href="https://buy.stripe.com/fZu28qfsc66vcO58Ph9k405" target="_blank" rel="noopener noreferrer">
+          <!-- ...9k404 is the $35 "(PICK UP)" product, ...9k405 the $41 "(SHIPPED)"
+               one — verified against the live Stripe checkout pages. -->
+          <a class="pay-opt" href="https://buy.stripe.com/4gM3cufscbqP6pHd5x9k404" target="_blank" rel="noopener noreferrer">
             <span class="pay-opt-title">Pick Up</span>
             <span class="pay-opt-price">$35</span>
             <span class="pay-opt-sub">New York · No shipping fee</span>
             <span class="pay-opt-cta">Buy Now →</span>
           </a>
-          <a class="pay-opt" href="https://buy.stripe.com/4gM3cufscbqP6pHd5x9k404" target="_blank" rel="noopener noreferrer">
+          <a class="pay-opt" href="https://buy.stripe.com/fZu28qfsc66vcO58Ph9k405" target="_blank" rel="noopener noreferrer">
             <span class="pay-opt-title">Shipped</span>
             <span class="pay-opt-price">$41</span>
             <span class="pay-opt-sub">$35 + $6 domestic shipping</span>
@@ -2441,6 +2478,13 @@ function renderIssueDetail(idx) {
           </a>
         </div>
         <div class="pay-note">Secure checkout via Stripe</div>` : `<div class="detail-ship">Not yet available</div>`}
+        ${(iss.contributors || iss.interviews) ? `
+        <!-- phone-only copy; the desktop one lives in the left column. Sitting
+             inside .detail-info lets the mobile order rules slot it between the
+             payment block and the description. -->
+        <div class="detail-contributors-outer detail-contrib-mobile">
+          ${contribHTML}
+        </div>` : ''}
       </div>
       <div class="detail-sidebar">
         ${specs ? `
@@ -2450,11 +2494,6 @@ function renderIssueDetail(idx) {
         </div>` : ''}
       </div>
     </div>
-
-    ${(iss.contributors || iss.interviews) ? `
-    <div class="detail-contributors-outer detail-contrib-mobile">
-      ${contribHTML}
-    </div>` : ''}
 
     ${spreads ? `
     <div class="detail-section">
@@ -2649,8 +2688,27 @@ document.querySelectorAll(".nav-link[data-tab]").forEach(link => {
     if (link.hasAttribute("aria-selected")) link.setAttribute("aria-selected", "true");
     const panel = document.getElementById("tab-" + tab);
     if (panel) panel.classList.add("active");
+    playAmbientVideos();          // the About clip only starts once its tab shows
   });
 });
+
+/* ── AMBIENT VIDEO ───────────────────────────────────────────
+   A video inside a hidden tab panel never honours `autoplay`, and a browser
+   that refuses an unattended play leaves a native play button sitting on the
+   artwork. Nudge every decorative clip whenever it could newly be playable. */
+function playAmbientVideos() {
+  document.querySelectorAll("video[autoplay]").forEach(v => {
+    v.muted = true;                       // required for unattended playback
+    if (!v.paused || !v.isConnected) return;
+    if (!v.offsetWidth && !v.offsetHeight) return;   // still in a hidden panel
+    const p = v.play();
+    if (p && p.catch) p.catch(() => {});
+  });
+}
+playAmbientVideos();
+document.addEventListener("visibilitychange", playAmbientVideos);
+["pointerdown", "touchstart", "keydown"].forEach(evt =>
+  document.addEventListener(evt, playAmbientVideos, { passive: true }));
 
 /* logo → home (Issues) */
 document.getElementById("logoHome")?.addEventListener("click", e => {
@@ -2702,16 +2760,36 @@ class BookController {
 
   _bind() {
     const s = this.stage;
-    const onDown = e => {
+    let pending = false, pid = null, sx = 0, sy = 0;
+
+    const begin = e => {
       this.dragging = true;
       this.velX = this.velY = 0;
       this.px = e.clientX; this.py = e.clientY;
       this.lastInteract = performance.now();
       if (this.hint) this.hint.classList.add("hide");
       try { s.setPointerCapture(e.pointerId); } catch (_) {}
-      e.preventDefault();
+    };
+
+    const onDown = e => {
+      pid = e.pointerId; sx = e.clientX; sy = e.clientY;
+      if (e.pointerType === "mouse") {
+        begin(e);
+        e.preventDefault();               // no text/image selection mid-drag
+      } else {
+        // Touch: don't claim the gesture yet. Only once it reads as a
+        // deliberate sideways drag does the book take it — a vertical swipe
+        // stays with the page and scrolls normally.
+        pending = true;
+      }
     };
     const onMove = e => {
+      if (pending && e.pointerId === pid) {
+        const gx = Math.abs(e.clientX - sx), gy = Math.abs(e.clientY - sy);
+        if (gy > gx && gy > 6) { pending = false; return; }   // scrolling — let go
+        if (gx > 6) { pending = false; begin(e); }            // rotating — take it
+        else return;                                          // still ambiguous
+      }
       if (!this.dragging) return;
       const dx = e.clientX - this.px;
       const dy = e.clientY - this.py;
@@ -2723,6 +2801,7 @@ class BookController {
       this.lastInteract = performance.now();
     };
     const onUp = e => {
+      pending = false;
       if (!this.dragging) return;
       this.dragging = false;
       this.lastInteract = performance.now();
@@ -2931,18 +3010,17 @@ if (heroBook && heroStage) {
 
   /* Two-page spread exports, ordered by printed page number */
   const SPREADS = [
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE2.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE4.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE6.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE14.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE18.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE24.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE28.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE33.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE35.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE47.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE52.png",
-    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE61.png"
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web2.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web4.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web6.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web13.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web17.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web23.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web32.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web34.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web46.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web51.jpg",
+    "ISSUE 01 SPREADS WEB/LOGIN MASTER FILE web60.jpg"
   ];
   const url = i => 'url("' + SPREADS[i] + '")';
 
@@ -3004,12 +3082,13 @@ if (heroBook && heroStage) {
     if (busy || !isOpen) return;
     const target = index + dir;
     if (target < 0) return;
-    if (target >= SPREADS.length) { close(); return; }   // past the last page → close
+    if (target >= SPREADS.length) { close(); return; }   // past the last spread → close
     busy = true;
     preload(target + dir);
 
     leaf.classList.remove("forward", "backward", "turning");
     if (dir > 0) {
+      // the current right-hand page lifts and lands as the next left-hand page
       leaf.classList.add("active", "forward");
       leafFront.style.backgroundImage    = url(index);
       leafFront.style.backgroundPosition = "right center";
@@ -3023,6 +3102,7 @@ if (heroBook && heroStage) {
         leaf.style.transform = "rotateY(-180deg)";
       }));
     } else {
+      // and in reverse: the current left-hand page swings back to the right
       leaf.classList.add("active", "backward");
       leafFront.style.backgroundImage    = url(index);
       leafFront.style.backgroundPosition = "left center";
@@ -3281,6 +3361,226 @@ if (heroBook && heroStage) {
     msgEl.hidden = false;
     setTimeout(() => close(), 1200);
   });
+}());
+</script>
+
+<script>
+/* ============================================================
+   ASCII SCRAMBLE — headers glitch into ASCII glyphs on hover
+   and dynamically resolve back into the typeface on mouse-out.
+   Works on dynamically rendered headers via event delegation.
+   ============================================================ */
+(function () {
+
+  const SELECTOR = [
+    '.hero-title',
+    '.detail-title',
+    '.section-label',
+    '.issue-title',
+    '.events-banner-title',
+    '.pay-heading',
+    '.gallery-overlay-title',
+    '.lightbox-title',
+    '.email-title'
+  ].join(', ');
+
+  // weighted toward glyphs with visual mass — hairline punctuation reads as
+  // holes in the word at display sizes
+  const GLYPHS   = '#%&$@*+=<>?!/\\|[]{}()~^_-01';
+  const CYCLE_MS = 40;   // glyph re-roll rate while a character is spinning
+  const STAGGER  = 16;   // wave delay between neighbouring characters
+  const SPIN_IN  = 200;  // spin time before a character locks to its glyph
+  const SPIN_OUT = 260;  // spin time before it resolves back to the letter
+  const FLICKER  = 150;  // idle re-roll cadence while the header is hovered
+
+  const reduced  = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const canHover = window.matchMedia('(hover: hover)');  // touch taps would stick
+  const active   = new Map();   // element -> animation state
+  let   frame    = null;
+
+  const glyph = () => GLYPHS.charAt((Math.random() * GLYPHS.length) | 0);
+
+  /* Split the header's text into per-character spans (words stay unbreakable,
+     existing markup like <br> is preserved) and lock each span to the width it
+     naturally renders at, so swapping glyphs can never reflow the line. */
+  function build(el) {
+    const html  = el.innerHTML;
+    const wrap  = document.createElement('span');
+    const chars = [];
+
+    (function walk(src, dest) {
+      Array.from(src.childNodes).forEach(function (node) {
+        if (node.nodeType === 3) {
+          node.nodeValue.split(/(\s+)/).forEach(function (part) {
+            if (!part) return;
+            if (/^\s+$/.test(part)) {
+              dest.appendChild(document.createTextNode(part));
+              return;
+            }
+            const word = document.createElement('span');
+            word.className = 'ascii-word';
+            Array.from(part).forEach(function (ch) {
+              const span = document.createElement('span');
+              span.className = 'ascii-char';
+              span.textContent = ch;
+              word.appendChild(span);
+              chars.push({ el: span, orig: ch, target: ch, k: -1, settled: true });
+            });
+            dest.appendChild(word);
+          });
+        } else if (node.nodeType === 1) {
+          const clone = node.cloneNode(false);
+          dest.appendChild(clone);
+          walk(node, clone);
+        }
+      });
+    }(el, wrap));
+
+    if (!chars.length) return null;
+
+    el.textContent = '';
+    el.appendChild(wrap);
+
+    // read every width first, then write — one layout pass, no thrash
+    const widths = chars.map(c => c.el.getBoundingClientRect().width);
+    chars.forEach((c, i) => { c.el.style.width = widths[i] + 'px'; });
+
+    return { html: html, wrap: wrap, chars: chars, dir: 0, t0: 0, flick: 0 };
+  }
+
+  function retarget(st, dir, now) {
+    st.dir = dir;
+    st.t0  = now;
+    st.chars.forEach(function (c, i) {
+      c.delay   = i * STAGGER;
+      c.dur     = dir === 1 ? SPIN_IN : SPIN_OUT;
+      c.target  = dir === 1 ? glyph() : c.orig;
+      c.settled = false;
+      c.k       = -1;
+    });
+  }
+
+  function tick(now) {
+    frame = null;
+
+    active.forEach(function (st, el) {
+      // bail out if the header was removed or re-rendered underneath us
+      if (!el.isConnected || st.wrap.parentNode !== el) { active.delete(el); return; }
+
+      let running = false;
+
+      for (let i = 0; i < st.chars.length; i++) {
+        const c = st.chars[i];
+        const t = now - st.t0 - c.delay;
+
+        if (t < 0) { running = true; continue; }
+
+        if (t < c.dur) {
+          running = true;
+          const k = (t / CYCLE_MS) | 0;
+          if (k !== c.k) { c.k = k; c.el.textContent = glyph(); }
+        } else if (!c.settled) {
+          c.settled = true;
+          c.el.textContent = c.target;
+        }
+      }
+
+      if (running) return;
+
+      if (st.dir === 1) {
+        // Settled into ASCII — keep a slow flicker alive while hovered.
+        if (now - st.flick > FLICKER) {
+          st.flick = now;
+          const c = st.chars[(Math.random() * st.chars.length) | 0];
+          c.target = glyph();
+          c.el.textContent = c.target;
+        }
+      } else {
+        el.innerHTML = st.html;   // fully resolved — restore the original markup
+        active.delete(el);
+      }
+    });
+
+    if (active.size) frame = requestAnimationFrame(tick);
+  }
+
+  function pump() {
+    if (frame === null) frame = requestAnimationFrame(tick);
+  }
+
+  function enter(el) {
+    if (reduced.matches || !canHover.matches) return;
+    let st = active.get(el);
+    if (!st) {
+      st = build(el);
+      if (!st) return;
+      active.set(el, st);
+    } else if (st.dir === 1) {
+      return;                     // already scrambled / scrambling
+    }
+    retarget(st, 1, performance.now());
+    st.flick = performance.now();
+    pump();
+  }
+
+  function leave(el) {
+    const st = active.get(el);
+    if (!st || st.dir === -1) return;
+    // rebuilding the text under the cursor can emit a phantom mouseout —
+    // if the pointer is demonstrably still on the header, stay scrambled
+    if (el.matches(':hover')) return;
+    retarget(st, -1, performance.now());
+    pump();
+  }
+
+  /* Several of these headers are full-width blocks, so the element box is much
+     wider than the words inside it. Hit-test against the text's own client
+     rects so the effect only fires when the pointer is actually on the glyphs. */
+  let cand = null, candRects = null;
+
+  function onText(x, y) {
+    if (!candRects) {
+      const range = document.createRange();
+      range.selectNodeContents(cand);
+      candRects = Array.from(range.getClientRects());
+    }
+    const pad = 3;
+    return candRects.some(r =>
+      x >= r.left - pad && x <= r.right + pad &&
+      y >= r.top  - pad && y <= r.bottom + pad
+    );
+  }
+
+  function header(target) {
+    return target && target.closest ? target.closest(SELECTOR) : null;
+  }
+
+  document.addEventListener('mouseover', function (e) {
+    const el = header(e.target);
+    if (!el) { cand = null; candRects = null; return; }
+    if (active.has(el)) return;
+    if (el !== cand) { cand = el; candRects = null; }
+    if (onText(e.clientX, e.clientY)) enter(el);
+  });
+
+  // the pointer can slide onto the text without crossing an element boundary
+  document.addEventListener('mousemove', function (e) {
+    if (!cand || active.has(cand) || header(e.target) !== cand) return;
+    if (onText(e.clientX, e.clientY)) enter(cand);
+  });
+
+  document.addEventListener('mouseout', function (e) {
+    const el = header(e.target);
+    if (!el) return;
+    // ignore moves between the character spans inside the same header
+    if (e.relatedTarget && el.contains(e.relatedTarget)) return;
+    leave(el);
+  });
+
+  const stale = () => { candRects = null; };
+  window.addEventListener('scroll', stale, { passive: true });
+  window.addEventListener('resize', stale);
+
 }());
 </script>
 </body>
