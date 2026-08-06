@@ -253,8 +253,8 @@
   .book-stage:active { cursor: grabbing; }
 
   .book {
-    --bw: 100px;   /* cover width  */
-    --bh: 136px;   /* cover height */
+    --bw: 100px;                          /* cover width  */
+    --bh: calc(var(--bw) * 11 / 8.5);     /* cover height — true 8.5 × 11 */
     --bd: 5px;     /* spine depth / thickness */
     position: relative;
     transform-style: preserve-3d;
@@ -1234,7 +1234,7 @@
     display: block;
     width: 100%;
     cursor: zoom-in;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 17 / 11;   /* a spread is two 8.5 × 11 pages */
   }
   .spread img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
   .spread::after {
@@ -1357,13 +1357,22 @@
     gap: 14px;
     perspective: 2600px;
     z-index: 3;
+    /* lets .fb-viewport size itself off this box's height as well as its
+       width, so the spread keeps its ratio in short windows — see below */
+    container-type: size;
   }
   .flipbook.open { display: flex; }
 
+  /* A spread is two 8.5 × 11 pages side by side: 17 / 11 exactly, same as the
+     printed magazine. Height has to be part of the width calculation — with a
+     plain `width` plus `max-height`, a short window clamps the height only and
+     the pages come out stretched wide (30% at 1600 × 700). The first `width`
+     is the fallback for engines without container-query units. */
   .fb-viewport {
     position: relative;
     aspect-ratio: 17 / 11;
     width: min(96%, 1100px);
+    width: min(96cqw, 1100px, calc(86cqh * 17 / 11));
     max-height: 86%;
     transform-style: preserve-3d;
     transition: opacity 0.5s ease, transform 0.5s ease;
@@ -1592,13 +1601,24 @@
     transition: opacity 0.9s ease;
   }
 
+  /* The clip stays transparent until it is genuinely playing, which keeps the
+     native start-playback button off screen — Safari/iOS paint one over any
+     inline video that hasn't started, and the ::-webkit-media-controls rules
+     further down don't reliably suppress it. The overlay behind is already
+     black, so there is nothing to see in the meantime; if autoplay is refused
+     the intro just stays black behind the logo and dissolves on schedule.
+     Opacity rather than display/visibility: those would make the element "not
+     visible" to Chrome's autoplay heuristics and could stop it starting. */
   #intro-video {
+    opacity: 0;
+    transition: opacity 0.25s linear;
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
+  #intro-video.playing { opacity: 1; }
 
   /* ── INTRO LOGO OVERLAY ─────────────────────────────────────── */
   #intro-logo-wrap {
@@ -1862,14 +1882,15 @@
       gap: 22px;
     }
 
-    /* Mobile: hide the flat digital cover, show the product shots as a swipeable
-       slideshow. They're all shot ~3:2, so the frame is fixed and never jumps
-       size between slides; `contain` keeps every shot uncropped inside it. */
+    /* Mobile: hide the flat digital cover, show the spreads as a swipeable
+       slideshow. The frame is a two-page spread (17 / 11), so it matches the
+       printed format and never jumps size between slides; `contain` keeps
+       every spread uncropped inside it. */
     .detail-cover .media-cover-desktop { display: none; }
     .detail-cover {
       max-width: 340px;
       margin: 0 auto;
-      aspect-ratio: 3 / 2;
+      aspect-ratio: 17 / 11;
       height: auto;
       background: transparent;
     }
@@ -2552,13 +2573,19 @@ function openIssueDetail(idx, scrollToPayment) {
   document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
   document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
   document.getElementById("tab-issue-detail").classList.add("active");
-  if (scrollToPayment) {
+
+  /* Always land at the top of the detail page — instantly, since this is a
+     page change and not a jump within one. */
+  window.scrollTo({ top: 0, behavior: "auto" });
+
+  /* "Buy Now" then walks down to the payment block, but only on desktop: on a
+     phone that block sits well below the cover and title, so scrolling to it
+     opens the page halfway through with no context. */
+  if (scrollToPayment && window.innerWidth > 700) {
     setTimeout(() => {
       const p = document.getElementById("detailPayment");
       if (p) p.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 80);
-  } else {
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 }
 
@@ -2874,6 +2901,10 @@ class BookController {
 
   video.playbackRate = 1;
 
+  /* Only reveal the clip once frames are actually coming (see #intro-video) */
+  video.addEventListener('playing', () => video.classList.add('playing'));
+  video.addEventListener('pause',   () => video.classList.remove('playing'));
+
   function win95Dissolve() {
     const W = window.innerWidth, H = window.innerHeight;
 
@@ -2992,6 +3023,11 @@ class BookController {
 }());
 
 /* ── HERO BOOK FIT ──────────────────────────────────────────── */
+/* .book is --bw wide by --bh tall, a true 8.5 × 11 page. Keep these in step
+   with that rule — the scale below is expressed in those same units. */
+const BOOK_W = 100;
+const BOOK_H = BOOK_W * 11 / 8.5;
+
 function fitHeroBook() {
   const chrome = ['header','nav'].reduce((sum, sel) => {
     const el = document.querySelector(sel);
@@ -3005,14 +3041,14 @@ function fitHeroBook() {
   const stageH  = mobile ? Math.max(Math.min(avH * 0.5, 400), 300) : avH;
   const avW     = window.innerWidth * (mobile ? 0.9 : 0.52);
   // leave 52px (28+24) for hero padding in scale calculation
-  const byH   = ((stageH - (mobile ? 44 : 52)) * 0.82) / 136;
-  const byW   = (avW * 0.72) / 100;
+  const byH   = ((stageH - (mobile ? 44 : 52)) * 0.82) / BOOK_H;
+  const byW   = (avW * 0.72) / BOOK_W;
   const scale = Math.min(byH, byW, 6);
   const root  = document.documentElement;
   root.style.setProperty('--hero-h',           avH + 'px');
   root.style.setProperty('--hero-book-h',      stageH.toFixed(0) + 'px');
   root.style.setProperty('--hero-scale',        scale.toFixed(3));
-  root.style.setProperty('--hero-perspective',  (100 * scale * 4.5).toFixed(0) + 'px');
+  root.style.setProperty('--hero-perspective',  (BOOK_W * scale * 4.5).toFixed(0) + 'px');
 }
 
 /* ── INIT ────────────────────────────────────────────────── */
