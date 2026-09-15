@@ -1022,6 +1022,39 @@
   /* honeypot */
   .form-hp { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; }
 
+
+  /* ── SUBMIT PASSWORD GATE ───────────────────────────────────── */
+  .submit-gate {
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 8px;
+  }
+  .submit-gate[hidden] { display: none; }
+
+  .gate-intro {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--white-60);
+    line-height: 1.7;
+  }
+
+  .gate-field { display: flex; flex-direction: column; gap: 8px; }
+
+  .gate-row { display: flex; gap: 10px; align-items: stretch; }
+  .gate-row .form-input { flex: 1; min-width: 0; }
+  .gate-row .form-submit { align-self: stretch; white-space: nowrap; }
+
+  .gate-error {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: #ffd9d9;
+    min-height: 1em;
+  }
+  .gate-error[hidden] { display: none; }
+
   /* ── ISSUE DETAIL PAGE ──────────────────────────────────────── */
   .issue-detail { display: flex; flex-direction: column; gap: 52px; }
 
@@ -2156,12 +2189,34 @@
   <!-- SUBMIT TAB -->
   <div class="tab-panel" id="tab-submit">
     <div class="section-label">Submit</div>
+
+    <!-- Password gate. Shown until the correct password unlocks the form.
+         The password itself lives nowhere in this file — only a PBKDF2 hash
+         of it does. To change it, open set-password.html in a browser. -->
+    <div class="submit-gate" id="submitGate">
+      <p class="gate-intro">
+        Submissions to LOGIN are by invitation. Enter the password you were given to open the form.
+      </p>
+      <form class="gate-field" id="gateForm" autocomplete="off">
+        <label class="form-label" for="gatePass">Password</label>
+        <div class="gate-row">
+          <input class="form-input" id="gatePass" type="password" name="gate"
+                 autocomplete="current-password" placeholder="Enter password" required>
+          <button class="form-submit" id="gateBtn" type="submit">Enter</button>
+        </div>
+        <div class="gate-error" id="gateError" role="alert" hidden></div>
+      </form>
+    </div>
+
+    <div id="submitContent" hidden>
     <p style="max-width:620px; font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75; margin-bottom:8px;">
       LOGIN accepts submissions of any form or medium — advertisements, video, physical work, photography, writing, design, and beyond. We are interested in work that takes the internet seriously as a subject: its systems, aesthetics, labor, folklore, and consequences. Submissions are reviewed on a rolling basis.
     </p>
 
+    <!-- action is set at runtime from SUBMIT_EMAIL in the SUBMIT FORM script
+         below (info@loginmag.net), so the address is never sitting in the
+         markup for scrapers to lift. -->
     <form class="submit-form" id="submitForm"
-          action="https://formsubmit.co/calder1234516@gmail.com"
           method="POST" enctype="multipart/form-data">
 
       <!-- FormSubmit config -->
@@ -2244,6 +2299,7 @@
         Submitting sends your work directly to LOGIN by email. We review on a rolling basis and reply to the address you provide.
       </p>
     </form>
+    </div><!-- /#submitContent -->
   </div>
 
 </main>
@@ -3259,37 +3315,163 @@ if (heroBook && heroStage) {
   }
 }());
 
+/* ── SUBMIT: PASSWORD GATE ───────────────────────────────────
+   The Submit tab has no nav link — it is reachable only at
+   yoursite.com/?submit  and stays locked until the password is entered.
+
+   The password is NOT in this file. Only a PBKDF2-SHA256 hash of it is, at
+   200,000 iterations, so guessing it offline is slow and expensive. To change
+   the password, open set-password.html in a browser and paste the two values
+   it prints over GATE_SALT and GATE_HASH below.
+
+   Honest limit: this runs in the visitor's browser, so it is a lock on a glass
+   house — it stops everyone browsing normally, but not someone determined who
+   reads the source. Good enough for a submissions form; do not put anything
+   genuinely confidential behind it. */
+(function () {
+  const GATE_SALT  = "6409c3a08b8d96f3a3b2d82722a85673";
+  const GATE_HASH  = "63d374259b0239f540818e3f2ecae255031e09dd81dad6eda975cedde94ba218";
+  const ITERATIONS = 200000;
+
+  const panel   = document.getElementById("tab-submit");
+  const gate    = document.getElementById("submitGate");
+  const content = document.getElementById("submitContent");
+  const form    = document.getElementById("gateForm");
+  const input   = document.getElementById("gatePass");
+  const btn     = document.getElementById("gateBtn");
+  const errEl   = document.getElementById("gateError");
+  if (!panel || !gate || !content || !form) return;
+
+  const KEY = "login-submit-unlocked";
+
+  /* Show the Submit panel and hide every other one. There is no nav link to
+     click, so this does the same work the tab router does. */
+  function openSubmitTab() {
+    document.querySelectorAll(".nav-link").forEach(l => {
+      l.classList.remove("active");
+      if (l.hasAttribute("aria-selected")) l.setAttribute("aria-selected", "false");
+    });
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    panel.classList.add("active");
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function unlock() {
+    gate.hidden = true;
+    content.hidden = false;
+    try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
+  }
+
+  const hex = buf => [...new Uint8Array(buf)]
+    .map(b => b.toString(16).padStart(2, "0")).join("");
+
+  const bytes = h => new Uint8Array(h.match(/.{2}/g).map(p => parseInt(p, 16)));
+
+  async function check(password) {
+    const key = await crypto.subtle.importKey(
+      "raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt: bytes(GATE_SALT), iterations: ITERATIONS, hash: "SHA-256" },
+      key, 256);
+    return hex(bits) === GATE_HASH;
+  }
+
+  function fail(msg) {
+    errEl.textContent = msg;
+    errEl.hidden = false;
+    input.value = "";
+    input.focus();
+  }
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const value = input.value;
+    if (!value) return;
+    errEl.hidden = true;
+    btn.disabled = true;
+    btn.textContent = "Checking…";
+    try {
+      if (await check(value)) unlock();
+      else fail("That password isn't right. Check it and try again.");
+    } catch (_) {
+      /* crypto.subtle is unavailable over plain http:// or file:// — the live
+         HTTPS site is fine, but a local preview would land here. */
+      fail("This browser can't verify the password on an insecure connection. Open the site over https.");
+    }
+    btn.disabled = false;
+    btn.textContent = "Enter";
+  });
+
+  /* Stay unlocked for the rest of the browsing session, so returning from a
+     successful send does not ask for the password a second time. */
+  let already = null;
+  try { already = sessionStorage.getItem(KEY); } catch (_) {}
+  if (already === "1") unlock();
+
+  /* Routing: ?submit opens the tab, and so does the ?submitted=1 return trip
+     that FormSubmit sends people back on. */
+  const qs = new URLSearchParams(location.search);
+  if (qs.has("submit") || qs.get("submitted") === "1") {
+    if (document.getElementById("intro-overlay")) {
+      document.addEventListener("login:introdone", openSubmitTab, { once: true });
+      setTimeout(openSubmitTab, 4000);   // failsafe if the intro event never fires
+    } else {
+      openSubmitTab();
+    }
+    if (!gate.hidden) setTimeout(() => input.focus(), 120);
+  }
+}());
+
 /* ── SUBMIT FORM ─────────────────────────────────────────── */
 (function () {
+  /* Where submissions are emailed. FormSubmit emails this address a one-time
+     confirmation link the first time a submission is sent — that link must be
+     clicked once, or nothing after it arrives. */
+  const SUBMIT_EMAIL = "info@loginmag.net";
+
   const form = document.getElementById("submitForm");
   if (!form) return;
   const btn    = document.getElementById("formSubmitBtn");
   const status = document.getElementById("formStatus");
 
-  // Files require FormSubmit's standard (non-AJAX) endpoint, which redirects
-  // after sending — so we send it back to this page with ?submitted=1.
-  const next = document.createElement("input");
-  next.type = "hidden";
-  next.name = "_next";
-  next.value = location.origin + location.pathname + "?submitted=1#submit-anchor";
-  form.appendChild(next);
+  const configured = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(SUBMIT_EMAIL);
 
-  form.addEventListener("submit", () => {
-    btn.disabled = true;
-    btn.textContent = "Sending…";
-  });
+  if (configured) {
+    form.action = "https://formsubmit.co/" + SUBMIT_EMAIL;
 
-  // On return from a successful submission, switch to Submit and confirm.
+    // Files require FormSubmit's standard (non-AJAX) endpoint, which redirects
+    // after sending — so we send it back to this page with ?submitted=1.
+    const next = document.createElement("input");
+    next.type = "hidden";
+    next.name = "_next";
+    next.value = location.origin + location.pathname + "?submitted=1";
+    form.appendChild(next);
+
+    form.addEventListener("submit", () => {
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+    });
+  } else {
+    /* No destination yet — block the send and say why, in plain language. */
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      if (!status) return;
+      status.className = "form-status err show";
+      status.textContent = "Submissions aren't open just yet — the LOGIN inbox is still being set up. Please check back shortly.";
+      status.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  // On return from a successful submission, confirm. The gate script has
+  // already switched to this tab and unlocked it for the session.
   if (new URLSearchParams(location.search).get("submitted") === "1") {
-    const submitLink = document.querySelector('.nav-link[data-tab="submit"]');
-    if (submitLink) submitLink.click();
     if (status) {
       status.className = "form-status ok show";
       status.textContent = "Thank you — your submission was sent. We review on a rolling basis and will reply to the email you provided.";
     }
     form.reset();
     history.replaceState(null, "", location.pathname);
-    status?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => status?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
   }
 }());
 

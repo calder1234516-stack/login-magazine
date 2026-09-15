@@ -9,6 +9,10 @@ LOGIN-MAGAZINE-ADJUSTMENTS-PLAN.md
 # Large unreferenced video (keep repo lean)
 *.mov
 
+# Submission-page password notes — contains the password in plaintext.
+# This repo is public; never commit it.
+PASSWORD.md
+
 # OS / editor cruft
 Thumbs.db
 .DS_Store
