@@ -1024,6 +1024,36 @@
   }
   .file-total.over { color: #ffd9d9; }
 
+  /* ── PITCH vs FULL SUBMISSION ───────────────────────────────
+     One panel serves both stages. ?pitch shows the pitch form (the link
+     that goes out to everyone now); ?submit shows the full submission
+     form (sent later, only to contributors who were selected). */
+  #submitContent[data-mode="pitch"]  #submitForm,
+  #submitContent[data-mode="pitch"]  .mode-submit,
+  #submitContent[data-mode="submit"] #pitchForm,
+  #submitContent[data-mode="submit"] .mode-pitch { display: none; }
+
+  .mode-note {
+    max-width: 620px;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--white-60);
+    line-height: 1.7;
+    margin: 0 0 4px;
+  }
+  .mode-deadline {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--white);
+    border: 1px solid var(--white-15);
+    background: rgba(255,255,255,0.06);
+    padding: 9px 13px;
+    margin-top: 12px;
+  }
+
   /* ── SUBMIT LAYOUT: form left, guidelines right ─────────────── */
   .submit-layout {
     display: grid;
@@ -2336,6 +2366,23 @@
       </p>
     </div>
 
+    <div style="max-width:620px; margin-top:26px;">
+      <p class="mode-note mode-pitch">
+        <strong style="color:var(--white);">Pitching for Issue 02.</strong>
+        Send a one-paragraph pitch — the idea and your angle on the theme, not a
+        finished draft. If your work is selected for print, LOGIN will reach out
+        by email with a submission link for sending your final files.
+      </p>
+      <div class="mode-deadline mode-pitch">Pitches due October 1st</div>
+
+      <p class="mode-note mode-submit">
+        <strong style="color:var(--white);">Submitting your work.</strong>
+        Send your final files and statement below. If anything has changed since
+        your pitch, note it in the statement.
+      </p>
+      <div class="mode-deadline mode-submit">Final work due November 15th</div>
+    </div>
+
     <div class="submit-layout">
 
     <!-- Guidelines sit first in the DOM so they stack above the form on
@@ -2366,6 +2413,64 @@
         </div>
       </div>
     </aside>
+
+    <!-- PITCH FORM — the ?pitch stage. Action is set at runtime, same as the
+         submission form below. -->
+    <form class="submit-form" id="pitchForm" method="POST">
+
+      <input type="hidden" name="_subject" value="LOGIN — New Pitch (Issue 02)">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="text" name="_honey" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label" for="p-name">Name <span class="req">*</span></label>
+          <input class="form-input" id="p-name" name="Name" type="text" required placeholder="Your name">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="p-email">Email <span class="req">*</span></label>
+          <input class="form-input" id="p-email" name="Email" type="email" required placeholder="you@email.com">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label" for="p-pronouns">Pronouns <span class="opt">optional</span></label>
+          <input class="form-input" id="p-pronouns" name="Pronouns" type="text" placeholder="e.g. they/them">
+        </div>
+        <div class="form-row">
+          <label class="form-label" for="p-medium">Form / Medium of work <span class="req">*</span></label>
+          <select class="form-select" id="p-medium" name="Medium" required>
+            <option value="" disabled selected>Select a medium…</option>
+            <option value="Essay / Article">Essay / Article</option>
+            <option value="Advertisement">Advertisement</option>
+            <option value="Video">Video</option>
+            <option value="Physical work">Physical work</option>
+            <option value="Photography">Photography</option>
+            <option value="Illustration / Design">Illustration / Design</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="p-pitch">Your pitch <span class="req">*</span></label>
+        <div class="form-hint">One paragraph — the idea, your angle on the theme, and the form it would take. Not a finished draft.</div>
+        <textarea class="form-textarea" id="p-pitch" name="Pitch" required
+                  style="min-height:170px;" placeholder="Write your pitch…"></textarea>
+      </div>
+
+      <div class="form-status" id="pitchStatus" role="status" aria-live="polite"></div>
+
+      <button class="form-submit" id="pitchSubmitBtn" type="submit">Send Pitch →</button>
+
+      <p class="form-note">
+        If your work is selected for print, LOGIN will reach out by email with a
+        submission link for sending your final files. We read every pitch and
+        reply to the address you provide.
+      </p>
+    </form>
 
     <!-- action is set at runtime from SUBMIT_EMAIL in the SUBMIT FORM script
          below (info@loginmag.net), so the address is never sitting in the
@@ -3573,10 +3678,17 @@ if (heroBook && heroStage) {
   try { already = sessionStorage.getItem(KEY); } catch (_) {}
   if (already === "1") unlock();
 
-  /* Routing: ?submit opens the tab, and so does the ?submitted=1 return trip
-     that FormSubmit sends people back on. */
+  /* Routing: ?pitch and ?submit both open this panel, and so do the
+     ?pitched=1 / ?submitted=1 return trips FormSubmit sends people back on.
+
+     ?pitch  → the pitch form (the link sent to contributors now)
+     ?submit → the full submission form (sent later, to those selected)
+     Neither named → pitch, since that is the open stage. */
   const qs = new URLSearchParams(location.search);
-  if (qs.has("submit") || qs.get("submitted") === "1") {
+  const wantsSubmit = qs.has("submit") || qs.get("submitted") === "1";
+  content.setAttribute("data-mode", wantsSubmit ? "submit" : "pitch");
+
+  if (wantsSubmit || qs.has("pitch") || qs.get("pitched") === "1") {
     if (document.getElementById("intro-overlay")) {
       document.addEventListener("login:introdone", openSubmitTab, { once: true });
       setTimeout(openSubmitTab, 4000);   // failsafe if the intro event never fires
@@ -3584,6 +3696,51 @@ if (heroBook && heroStage) {
       openSubmitTab();
     }
     if (!gate.hidden) setTimeout(() => input.focus(), 120);
+  }
+}());
+
+/* ── PITCH FORM ──────────────────────────────────────────────
+   Same inbox and same FormSubmit endpoint as the submission form; only the
+   subject line and the return URL differ. No attachments at this stage. */
+(function () {
+  const PITCH_EMAIL = "info@loginmag.net";
+
+  const form = document.getElementById("pitchForm");
+  if (!form) return;
+  const btn    = document.getElementById("pitchSubmitBtn");
+  const status = document.getElementById("pitchStatus");
+
+  if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(PITCH_EMAIL)) {
+    form.action = "https://formsubmit.co/" + PITCH_EMAIL;
+
+    const next = document.createElement("input");
+    next.type  = "hidden";
+    next.name  = "_next";
+    next.value = location.origin + location.pathname + "?pitched=1";
+    form.appendChild(next);
+
+    form.addEventListener("submit", () => {
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+    });
+  } else {
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      if (!status) return;
+      status.className = "form-status err show";
+      status.textContent = "Pitches aren't open just yet — the LOGIN inbox is still being set up. Please check back shortly.";
+      status.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  if (new URLSearchParams(location.search).get("pitched") === "1") {
+    if (status) {
+      status.className = "form-status ok show";
+      status.textContent = "Thank you — your pitch was sent. We read every pitch, and if your work is selected for print we'll email you a submission link for your final files.";
+    }
+    form.reset();
+    history.replaceState(null, "", location.pathname);
+    setTimeout(() => status?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
   }
 }());
 
