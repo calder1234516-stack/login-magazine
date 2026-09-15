@@ -980,6 +980,117 @@
   }
   .form-file::file-selector-button:hover { opacity: 0.7; }
 
+  /* Attachments: FormSubmit forwards one file per input, so each slot is its
+     own <input>. "Add another file" clones a slot, up to MAX_FILE_SLOTS. */
+  .file-slots { display: flex; flex-direction: column; gap: 10px; }
+  .file-slot  { display: flex; align-items: center; gap: 10px; }
+  .file-slot .form-file { flex: 1; min-width: 0; }
+
+  .file-drop {
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--white-15);
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: opacity 0.14s, border-color 0.14s;
+  }
+  .file-drop:hover { border-color: rgba(255,255,255,0.5); color: var(--white); }
+
+  .file-add {
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--white);
+    background: none;
+    border: 1px solid var(--white-15);
+    padding: 10px 14px;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: opacity 0.14s, border-color 0.14s;
+  }
+  .file-add:hover { border-color: rgba(255,255,255,0.6); }
+  .file-add:disabled { opacity: 0.4; cursor: default; }
+
+  .file-total {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+  .file-total.over { color: #ffd9d9; }
+
+  /* ── SUBMIT LAYOUT: form left, guidelines right ─────────────── */
+  .submit-layout {
+    display: grid;
+    /* Columns are sized to their content so the guidelines sit beside the
+       form rather than drifting to the far edge on wide screens. */
+    grid-template-columns: minmax(0, 620px) minmax(260px, 340px);
+    justify-content: start;
+    gap: 48px;
+    align-items: start;
+    margin-top: 28px;
+  }
+  .submit-layout .submit-form { grid-column: 1; grid-row: 1; max-width: 620px; }
+  .submit-guidelines          { grid-column: 2; grid-row: 1; }
+
+  @media (max-width: 900px) {
+    .submit-layout { grid-template-columns: 1fr; gap: 34px; }
+    /* Guidelines come first in the DOM, so on narrow screens the deadlines
+       are read before the form rather than buried under it. */
+    .submit-layout .submit-form { grid-column: 1; grid-row: 2; }
+    .submit-guidelines          { grid-column: 1; grid-row: 1; }
+  }
+
+  .submit-guidelines-inner {
+    border: 1px solid var(--white-15);
+    background: rgba(255,255,255,0.04);
+    padding: 22px 22px 26px;
+  }
+  @media (min-width: 901px) {
+    .submit-guidelines-inner { position: sticky; top: 24px; }
+  }
+
+  .guide-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+  .guide-group { margin-bottom: 22px; }
+  .guide-group:last-child { margin-bottom: 0; }
+  .guide-head {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    margin-bottom: 9px;
+  }
+  .guide-list { list-style: none; margin: 0; padding: 0; }
+  .guide-list li {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--white-60);
+    line-height: 1.6;
+    padding-left: 14px;
+    position: relative;
+    margin-bottom: 8px;
+  }
+  .guide-list li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+  }
+  .guide-date { color: var(--white); font-weight: 700; }
+
   .form-submit {
     font-family: var(--font);
     font-size: 12px;
@@ -2209,9 +2320,52 @@
     </div>
 
     <div id="submitContent" hidden>
-    <p style="max-width:620px; font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75; margin-bottom:8px;">
-      LOGIN accepts submissions of any form or medium — advertisements, video, physical work, photography, writing, design, and beyond. We are interested in work that takes the internet seriously as a subject: its systems, aesthetics, labor, folklore, and consequences. Submissions are reviewed on a rolling basis.
-    </p>
+
+    <div style="max-width:760px;">
+      <h2 style="font-size:22px; font-weight:700; letter-spacing:0.02em; color:var(--white); line-height:1.3; margin:0 0 6px;">
+        Issue 02: The Cyberpunk Issue
+      </h2>
+      <p style="font-size:16px; font-weight:700; color:var(--white); line-height:1.6; margin:0 0 18px;">
+        Cyberpunk became a blueprint, not a warning.
+      </p>
+      <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75; margin-bottom:16px;">
+        This issue explores the notion of cyberpunk as a lens to understand the current state of the world, rather than just a science fiction genre. The dystopian pictures of the future that the genre imagined are already showing up as signals in everyday life, and it's not a coincidence: it's downstream of the media that Silicon Valley tech bros and people in power grew up consuming and then built toward. Cyberpunk became a blueprint, not a warning. Work in this issue does not need to be explicitly about cyberpunk or focused on its aesthetics: it needs to sit with the conditions of the present and its potential futures to tell the story of a world becoming increasingly defined by network capitalism, social upheaval, surveillance states, and advanced technology, and the ways we, as users, can circumvent these systems. Login is interested in work that maps the digital systems we inhabit, and the effects technologies have on us as a culture and society.
+      </p>
+      <p style="font-size:14px; font-weight:400; color:var(--text-muted); line-height:1.75; margin-bottom:8px;">
+        <span style="color:var(--white-60); font-weight:700;">Background on cyberpunk:</span> Cyberpunk is a subgenre of science fiction set in a dystopian future that combines advanced technology with a collapsed social order. These worlds are defined by the juxtaposition between high tech and low life, and advanced technology like machines, Artificial Intelligence, and digital networks used as tools for mega corporations to control society. Cyberpunk worlds can be seen in various influential works from William Gibson's seminal book on the genre, <em>Neuromancer</em>, to films like <em>Blade Runner</em>, <em>The Matrix</em>, <em>Ghost in the Shell</em>, <em>Ready Player One</em>, and video games like <em>Cyberpunk 2077</em>, and much more.
+      </p>
+    </div>
+
+    <div class="submit-layout">
+
+    <!-- Guidelines sit first in the DOM so they stack above the form on
+         narrow screens; CSS places them in the right column on desktop. -->
+    <aside class="submit-guidelines">
+      <div class="submit-guidelines-inner">
+        <div class="guide-title">Submission Guidelines</div>
+
+        <div class="guide-group">
+          <div class="guide-head">If you're writing an essay or article</div>
+          <ul class="guide-list">
+            <li>800–4,000 words; your angle on the theme — theory, reportage, personal essay, or criticism all work</li>
+            <li>Existing work is fine if it fits thematically; this doesn't need to be made for us</li>
+            <li>A one-paragraph pitch first, not a finished draft — due by <span class="guide-date">October 1st</span></li>
+            <li>Final draft due <span class="guide-date">November 15th</span></li>
+            <li>Sourced/cited where relevant; Chicago-style, endnotes rather than inline</li>
+          </ul>
+        </div>
+
+        <div class="guide-group">
+          <div class="guide-head">If you're contributing an art feature</div>
+          <ul class="guide-list">
+            <li>2–12 images, print-resolution (300 dpi minimum), plus an artist statement (150–1,000 words) about your work, practice, or the relation to the issue's theme</li>
+            <li>Existing work is fine if it fits thematically; this doesn't need to be made for us</li>
+            <li>No restriction on medium: website, fashion, photography, video, painting, installation, etc., all accepted</li>
+            <li>Files and statement due <span class="guide-date">November 15th</span></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
 
     <!-- action is set at runtime from SUBMIT_EMAIL in the SUBMIT FORM script
          below (info@loginmag.net), so the address is never sitting in the
@@ -2272,23 +2426,32 @@
         <textarea class="form-textarea" id="f-about" name="About the work (statement)" required placeholder="Write your statement…"></textarea>
       </div>
 
-      <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label" for="f-link">Link <span class="opt">optional</span></label>
-          <div class="form-hint">For video, advertisements, or work hosted online.</div>
-          <input class="form-input" id="f-link" name="Link" type="url" placeholder="https://">
-        </div>
-        <div class="form-row">
-          <label class="form-label" for="f-files">Attachments <span class="opt">optional</span></label>
-          <div class="form-hint">Screenshots, photography, or images of physical work. Uploads must be high quality / high resolution — print-ready. Up to ~10MB total.</div>
-          <input class="form-file" id="f-files" name="Attachments" type="file" multiple
-                 accept="image/*,.pdf,.gif,.heic">
-        </div>
+      <div class="form-row">
+        <label class="form-label" for="f-link">Link <span class="opt">optional</span></label>
+        <div class="form-hint">For video, websites, or anything too large to attach — Vimeo, YouTube, Drive, Dropbox, WeTransfer. Please make sure the link is public or set to "anyone with the link."</div>
+        <input class="form-input" id="f-link" name="Link" type="url" placeholder="https://">
       </div>
 
       <div class="form-row">
-        <label class="form-label" for="f-why">Why do you want to submit? <span class="req">*</span></label>
-        <textarea class="form-textarea" id="f-why" name="Why submit" required placeholder="What draws you to LOGIN?"></textarea>
+        <label class="form-label" for="f-file-1">Attachments <span class="opt">optional</span></label>
+        <div class="form-hint">
+          Any file type — images, PDFs, video, HTML, archives. Images should be
+          print-resolution (300 dpi minimum). Email attachments are capped at
+          <strong>10MB total across all files</strong>, so send video and large
+          files as a link above rather than an upload.
+        </div>
+        <div class="file-slots" id="fileSlots">
+          <div class="file-slot">
+            <input class="form-file" id="f-file-1" name="Attachment 1" type="file">
+          </div>
+        </div>
+        <button class="file-add" id="fileAdd" type="button">+ Add another file</button>
+        <div class="file-total" id="fileTotal" aria-live="polite"></div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="f-why">Why do you want to submit? <span class="opt">optional</span></label>
+        <textarea class="form-textarea" id="f-why" name="Why submit" placeholder="What draws you to LOGIN?"></textarea>
       </div>
 
       <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
@@ -2299,6 +2462,8 @@
         Submitting sends your work directly to LOGIN by email. We review on a rolling basis and reply to the address you provide.
       </p>
     </form>
+
+    </div><!-- /.submit-layout -->
     </div><!-- /#submitContent -->
   </div>
 
@@ -3434,6 +3599,87 @@ if (heroBook && heroStage) {
   const btn    = document.getElementById("formSubmitBtn");
   const status = document.getElementById("formStatus");
 
+  /* ── Attachments ──────────────────────────────────────────────
+     FormSubmit forwards one file per <input>, so "multiple" on a single
+     input would only ever send the first file. Each attachment therefore
+     gets its own input, added on demand.
+
+     The 10MB ceiling is FormSubmit's, and it is enforced on their end by
+     dropping the submission — so we check it here and refuse to send,
+     rather than letting someone's work vanish into a silent failure. */
+  const MAX_TOTAL_BYTES = 10 * 1024 * 1024;
+  const MAX_FILE_SLOTS  = 10;
+
+  const slots     = document.getElementById("fileSlots");
+  const addBtn    = document.getElementById("fileAdd");
+  const totalNote = document.getElementById("fileTotal");
+
+  function eachFile() {
+    return Array.from(form.querySelectorAll('input[type="file"]'))
+                .flatMap(i => Array.from(i.files || []));
+  }
+
+  function totalBytes() {
+    return eachFile().reduce((sum, f) => sum + f.size, 0);
+  }
+
+  function mb(bytes) { return (bytes / 1048576).toFixed(1) + "MB"; }
+
+  function renumber() {
+    slots.querySelectorAll('input[type="file"]').forEach((input, i) => {
+      input.name = "Attachment " + (i + 1);
+      input.id   = "f-file-" + (i + 1);
+    });
+    if (addBtn) {
+      addBtn.disabled =
+        slots.querySelectorAll('input[type="file"]').length >= MAX_FILE_SLOTS;
+    }
+  }
+
+  function updateTotal() {
+    if (!totalNote) return;
+    const files = eachFile();
+    const bytes = totalBytes();
+    if (!files.length) { totalNote.textContent = ""; totalNote.className = "file-total"; return; }
+    const over = bytes > MAX_TOTAL_BYTES;
+    totalNote.className = "file-total" + (over ? " over" : "");
+    totalNote.textContent =
+      files.length + (files.length === 1 ? " file" : " files") + " — " + mb(bytes) +
+      (over ? " — over the 10MB limit. Remove a file, or send the large ones as a link instead."
+            : " of 10MB");
+  }
+
+  function addSlot() {
+    const count = slots.querySelectorAll('input[type="file"]').length;
+    if (count >= MAX_FILE_SLOTS) return;
+
+    const row = document.createElement("div");
+    row.className = "file-slot";
+
+    const input = document.createElement("input");
+    input.className = "form-file";
+    input.type = "file";
+
+    const drop = document.createElement("button");
+    drop.className = "file-drop";
+    drop.type = "button";
+    drop.setAttribute("aria-label", "Remove this file");
+    drop.textContent = "×";
+    drop.addEventListener("click", () => { row.remove(); renumber(); updateTotal(); });
+
+    row.appendChild(input);
+    row.appendChild(drop);
+    slots.appendChild(row);
+    renumber();
+    input.focus();
+  }
+
+  if (slots) {
+    addBtn?.addEventListener("click", addSlot);
+    slots.addEventListener("change", updateTotal);
+    renumber();
+  }
+
   const configured = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(SUBMIT_EMAIL);
 
   if (configured) {
@@ -3447,7 +3693,27 @@ if (heroBook && heroStage) {
     next.value = location.origin + location.pathname + "?submitted=1";
     form.appendChild(next);
 
-    form.addEventListener("submit", () => {
+    form.addEventListener("submit", e => {
+      /* Refuse an over-limit send rather than let FormSubmit drop it. */
+      if (totalBytes() > MAX_TOTAL_BYTES) {
+        e.preventDefault();
+        if (status) {
+          status.className = "form-status err show";
+          status.textContent =
+            "Your attachments come to " + mb(totalBytes()) + ", over the 10MB email limit. " +
+            "Remove the largest files and send them as a link instead (Drive, Dropbox, WeTransfer, Vimeo) — " +
+            "everything else on the form will still come through.";
+          status.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        return;
+      }
+
+      /* Empty file inputs would post as blank attachments; drop them so the
+         email carries only real files. Disabled fields are not submitted. */
+      form.querySelectorAll('input[type="file"]').forEach(i => {
+        if (!i.files || !i.files.length) i.disabled = true;
+      });
+
       btn.disabled = true;
       btn.textContent = "Sending…";
     });
