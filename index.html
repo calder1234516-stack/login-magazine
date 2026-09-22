@@ -880,11 +880,47 @@
     max-width: 620px;
     display: flex;
     flex-direction: column;
-    gap: 26px;
+    gap: 34px;
     margin-top: 8px;
   }
 
   .form-row { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ── NUMBERED SECTIONS ──────────────────────────────────────
+     The form is read in stages — who you are, the work, how it's sent —
+     so each one is a fieldset with a ruled, numbered legend. */
+  .form-intro {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    margin: 0;
+  }
+  .form-intro .req { color: var(--white); font-weight: 700; }
+
+  .form-section { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .form-legend {
+    display: block;
+    width: 100%;
+    float: none;
+    padding: 0 0 11px;
+    margin: 0 0 20px;
+    border-bottom: 1px solid var(--white-15);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .form-legend-n { color: var(--text-muted); margin-right: 11px; }
+  .form-section-body { display: flex; flex-direction: column; gap: 22px; }
+
+  .form-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
 
   .form-grid {
     display: grid;
@@ -915,6 +951,22 @@
     line-height: 1.5;
     letter-spacing: 0.01em;
   }
+
+  /* Rules a contributor has to follow, broken out of the hint prose so
+     each one can be checked off at a glance. */
+  .hint-list { list-style: none; margin: 1px 0 2px; padding: 0; }
+  .hint-list li {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    line-height: 1.55;
+    padding-left: 17px;
+    position: relative;
+    margin-bottom: 5px;
+  }
+  .hint-list li:last-child { margin-bottom: 0; }
+  .hint-list li::before { content: "—"; position: absolute; left: 0; }
+  .hint-list strong { color: var(--white-60); font-weight: 700; }
 
   .form-input,
   .form-select,
@@ -959,71 +1011,6 @@
   }
   .form-select option { background: var(--blue); color: var(--white); }
 
-  .form-file {
-    font-family: var(--font);
-    font-size: 12px;
-    color: var(--white-60);
-  }
-  .form-file::file-selector-button {
-    font-family: var(--font);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--blue);
-    background: var(--white);
-    border: none;
-    padding: 9px 14px;
-    margin-right: 14px;
-    cursor: pointer;
-    transition: opacity 0.14s;
-  }
-  .form-file::file-selector-button:hover { opacity: 0.7; }
-
-  /* Attachments: FormSubmit forwards one file per input, so each slot is its
-     own <input>. "Add another file" clones a slot, up to MAX_FILE_SLOTS. */
-  .file-slots { display: flex; flex-direction: column; gap: 10px; }
-  .file-slot  { display: flex; align-items: center; gap: 10px; }
-  .file-slot .form-file { flex: 1; min-width: 0; }
-
-  .file-drop {
-    font-family: var(--font);
-    font-size: 16px;
-    line-height: 1;
-    color: var(--text-muted);
-    background: none;
-    border: 1px solid var(--white-15);
-    padding: 6px 10px;
-    cursor: pointer;
-    transition: opacity 0.14s, border-color 0.14s;
-  }
-  .file-drop:hover { border-color: rgba(255,255,255,0.5); color: var(--white); }
-
-  .file-add {
-    font-family: var(--font);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--white);
-    background: none;
-    border: 1px solid var(--white-15);
-    padding: 10px 14px;
-    cursor: pointer;
-    align-self: flex-start;
-    transition: opacity 0.14s, border-color 0.14s;
-  }
-  .file-add:hover { border-color: rgba(255,255,255,0.6); }
-  .file-add:disabled { opacity: 0.4; cursor: default; }
-
-  .file-total {
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--text-muted);
-    letter-spacing: 0.02em;
-  }
-  .file-total.over { color: #ffd9d9; }
-
   /* ── PITCH vs FULL SUBMISSION ───────────────────────────────
      One panel serves both stages. ?pitch shows the pitch form (the link
      that goes out to everyone now); ?submit shows the full submission
@@ -1033,25 +1020,137 @@
   #submitContent[data-mode="submit"] #pitchForm,
   #submitContent[data-mode="submit"] .mode-pitch { display: none; }
 
-  .mode-note {
+  /* ── SUBMIT HEADER ──────────────────────────────────────────── */
+  .submit-head { max-width: 760px; }
+
+  .submit-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    line-height: 1.3;
+    margin: 0 0 6px;
+  }
+  .submit-kicker {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.6;
+    margin: 0 0 20px;
+  }
+
+  /* Stage / deadline / how to send, above the fold and above the prose. */
+  .submit-meta {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid var(--white-15);
+    background: rgba(255,255,255,0.04);
+    margin: 0 0 24px;
+  }
+  .submit-meta > div {
+    flex: 1 1 180px;
+    min-width: 0;
+    padding: 13px 16px;
+    border-right: 1px solid var(--white-15);
+  }
+  .submit-meta > div:last-child { border-right: none; }
+  .submit-meta dt {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .submit-meta dd {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.45;
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+  @media (max-width: 620px) {
+    .submit-meta > div {
+      flex-basis: 100%;
+      border-right: none;
+      border-bottom: 1px solid var(--white-15);
+    }
+    .submit-meta > div:last-child { border-bottom: none; }
+  }
+
+  .submit-body p {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--white-60);
+    line-height: 1.75;
+    margin: 0 0 14px;
+  }
+
+  /* Background on the genre is context, not instruction — folded away so it
+     doesn't stand between the call and the form. */
+  .submit-more {
+    border-top: 1px solid var(--white-15);
+    margin-top: 4px;
+    padding-top: 14px;
+  }
+  .submit-more > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--white-60);
+    transition: color 0.14s;
+  }
+  .submit-more > summary::-webkit-details-marker { display: none; }
+  .submit-more > summary::after { content: "+"; font-size: 14px; line-height: 1; }
+  .submit-more[open] > summary::after { content: "–"; }
+  .submit-more > summary:hover { color: var(--white); }
+  .submit-more p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.75;
+    margin: 12px 0 0;
+  }
+
+  /* ── STAGE CARD ─────────────────────────────────────────────── */
+  .stage-card {
     max-width: 620px;
+    border: 1px solid var(--white-15);
+    border-left: 2px solid var(--white);
+    background: rgba(255,255,255,0.05);
+    padding: 18px 20px;
+    margin-top: 28px;
+  }
+  .stage-flag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 10px;
+  }
+  .stage-note {
     font-size: 15px;
     font-weight: 400;
     color: var(--white-60);
     line-height: 1.7;
-    margin: 0 0 4px;
+    margin: 0;
   }
-  .mode-deadline {
-    display: inline-block;
+  .stage-due {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--white);
-    border: 1px solid var(--white-15);
-    background: rgba(255,255,255,0.06);
-    padding: 9px 13px;
-    margin-top: 12px;
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid var(--white-15);
   }
 
   /* ── SUBMIT LAYOUT: form left, guidelines right ─────────────── */
@@ -1069,11 +1168,32 @@
   .submit-guidelines          { grid-column: 2; grid-row: 1; }
 
   @media (max-width: 900px) {
-    .submit-layout { grid-template-columns: 1fr; gap: 34px; }
-    /* Guidelines come first in the DOM, so on narrow screens the deadlines
-       are read before the form rather than buried under it. */
-    .submit-layout .submit-form { grid-column: 1; grid-row: 2; }
-    .submit-guidelines          { grid-column: 1; grid-row: 1; }
+    .submit-layout { grid-template-columns: 1fr; gap: 40px; }
+    /* The form comes first on narrow screens — the deadline and the sending
+       rules are already in the header and the stage card above it, and the
+       guidelines run long enough to bury the form otherwise. A jump link in
+       the form intro reaches them. */
+    .submit-layout .submit-form { grid-column: 1; grid-row: 1; }
+    .submit-guidelines          { grid-column: 1; grid-row: 2; }
+  }
+  .submit-guidelines { scroll-margin-top: 20px; }
+
+  /* Jump link to the guidelines — only needed once they sit below the form. */
+  .form-jump { display: none; }
+  @media (max-width: 900px) {
+    .form-jump {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      border-bottom: 1px solid var(--white-15);
+      padding-bottom: 3px;
+    }
+    .form-jump:hover { border-bottom-color: var(--white); }
   }
 
   .submit-guidelines-inner {
@@ -1109,7 +1229,7 @@
     font-weight: 400;
     color: var(--white-60);
     line-height: 1.6;
-    padding-left: 14px;
+    padding-left: 18px;
     position: relative;
     margin-bottom: 8px;
   }
@@ -1120,6 +1240,14 @@
     color: var(--text-muted);
   }
   .guide-date { color: var(--white); font-weight: 700; }
+  .guide-list strong { color: var(--white); font-weight: 700; }
+
+  /* The sending rules are the group that most often goes wrong, so they
+     carry the same accent as the stage card. */
+  .guide-group.is-key {
+    border-left: 2px solid var(--white);
+    padding-left: 14px;
+  }
 
   .form-submit {
     font-family: var(--font);
@@ -2351,53 +2479,87 @@
 
     <div id="submitContent" hidden>
 
-    <div style="max-width:760px;">
-      <h2 style="font-size:22px; font-weight:700; letter-spacing:0.02em; color:var(--white); line-height:1.3; margin:0 0 6px;">
-        Issue 02: The Cyberpunk Issue
-      </h2>
-      <p style="font-size:16px; font-weight:700; color:var(--white); line-height:1.6; margin:0 0 18px;">
-        Cyberpunk became a blueprint, not a warning.
-      </p>
-      <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75; margin-bottom:16px;">
-        This issue explores the notion of cyberpunk as a lens to understand the current state of the world, rather than just a science fiction genre. The dystopian pictures of the future that the genre imagined are already showing up as signals in everyday life, and it's not a coincidence: it's downstream of the media that Silicon Valley tech bros and people in power grew up consuming and then built toward. Cyberpunk became a blueprint, not a warning. Work in this issue does not need to be explicitly about cyberpunk or focused on its aesthetics: it needs to sit with the conditions of the present and its potential futures to tell the story of a world becoming increasingly defined by network capitalism, social upheaval, surveillance states, and advanced technology, and the ways we, as users, can circumvent these systems. Login is interested in work that maps the digital systems we inhabit, and the effects technologies have on us as a culture and society.
-      </p>
-      <p style="font-size:14px; font-weight:400; color:var(--text-muted); line-height:1.75; margin-bottom:8px;">
-        <span style="color:var(--white-60); font-weight:700;">Background on cyberpunk:</span> Cyberpunk is a subgenre of science fiction set in a dystopian future that combines advanced technology with a collapsed social order. These worlds are defined by the juxtaposition between high tech and low life, and advanced technology like machines, Artificial Intelligence, and digital networks used as tools for mega corporations to control society. Cyberpunk worlds can be seen in various influential works from William Gibson's seminal book on the genre, <em>Neuromancer</em>, to films like <em>Blade Runner</em>, <em>The Matrix</em>, <em>Ghost in the Shell</em>, <em>Ready Player One</em>, and video games like <em>Cyberpunk 2077</em>, and much more.
-      </p>
+    <div class="submit-head">
+      <h2 class="submit-title">Issue 02: The Cyberpunk Issue</h2>
+      <p class="submit-kicker">Cyberpunk became a blueprint, not a warning.</p>
+
+      <!-- The three things every contributor asks first, answered before any
+           prose: which stage is open, when it closes, and how work is sent. -->
+      <dl class="submit-meta">
+        <div>
+          <dt>Stage</dt>
+          <dd class="mode-pitch">Pitches — open now</dd>
+          <dd class="mode-submit">Final work — selected contributors</dd>
+        </div>
+        <div>
+          <dt>Deadline</dt>
+          <dd class="mode-pitch">October 1st</dd>
+          <dd class="mode-submit">November 15th</dd>
+        </div>
+        <div>
+          <dt>How to send</dt>
+          <dd class="mode-pitch">One paragraph, in the form below</dd>
+          <dd class="mode-submit">One shared folder link</dd>
+        </div>
+      </dl>
+
+      <div class="submit-body">
+        <p>This issue explores the notion of cyberpunk as a lens to understand the current state of the world, rather than just a science fiction genre. The dystopian pictures of the future that the genre imagined are already showing up as signals in everyday life, and it's not a coincidence: it's downstream of the media that Silicon Valley tech bros and people in power grew up consuming and then built toward. Cyberpunk became a blueprint, not a warning.</p>
+        <p>Work in this issue does not need to be explicitly about cyberpunk or focused on its aesthetics: it needs to sit with the conditions of the present and its potential futures to tell the story of a world becoming increasingly defined by network capitalism, social upheaval, surveillance states, and advanced technology, and the ways we, as users, can circumvent these systems. Login is interested in work that maps the digital systems we inhabit, and the effects technologies have on us as a culture and society.</p>
+
+        <details class="submit-more">
+          <summary>Background on cyberpunk</summary>
+          <p>Cyberpunk is a subgenre of science fiction set in a dystopian future that combines advanced technology with a collapsed social order. These worlds are defined by the juxtaposition between high tech and low life, and advanced technology like machines, Artificial Intelligence, and digital networks used as tools for mega corporations to control society. Cyberpunk worlds can be seen in various influential works from William Gibson's seminal book on the genre, <em>Neuromancer</em>, to films like <em>Blade Runner</em>, <em>The Matrix</em>, <em>Ghost in the Shell</em>, <em>Ready Player One</em>, and video games like <em>Cyberpunk 2077</em>, and much more.</p>
+        </details>
+      </div>
     </div>
 
-    <div style="max-width:620px; margin-top:26px;">
-      <p class="mode-note mode-pitch">
-        <strong style="color:var(--white);">Pitching for Issue 02.</strong>
+    <!-- Stage card: what this stage asks for and when it closes, in one
+         block, so the deadline is never hunted for in the prose. -->
+    <div class="stage-card mode-pitch">
+      <div class="stage-flag">Stage 01 — Pitch</div>
+      <p class="stage-note">
         Send a one-paragraph pitch — the idea and your angle on the theme, not a
         finished draft. If your work is selected for print, LOGIN will reach out
         by email with a submission link for sending your final files.
       </p>
-      <div class="mode-deadline mode-pitch">Pitches due October 1st</div>
+      <div class="stage-due">Pitches due October 1st</div>
+    </div>
 
-      <p class="mode-note mode-submit">
-        <strong style="color:var(--white);">Submitting your work.</strong>
-        Send your final files and statement below. If anything has changed since
+    <div class="stage-card mode-submit">
+      <div class="stage-flag">Stage 02 — Final work</div>
+      <p class="stage-note">
+        Send a link to a shared folder holding your final work, along with your
+        statement, below. The folder has to be set to "anyone with the link,"
+        and any writing belongs in it as a doc. If anything has changed since
         your pitch, note it in the statement.
       </p>
-      <div class="mode-deadline mode-submit">Final work due November 15th</div>
+      <div class="stage-due">Final work due November 15th</div>
     </div>
 
     <div class="submit-layout">
 
-    <!-- Guidelines sit first in the DOM so they stack above the form on
-         narrow screens; CSS places them in the right column on desktop. -->
-    <aside class="submit-guidelines">
+    <!-- Guidelines are second in the DOM only on narrow screens, where the
+         header's meta row and the stage card already carry the deadline;
+         CSS puts them in the sticky right column on desktop. -->
+    <aside class="submit-guidelines" id="submitGuidelines">
       <div class="submit-guidelines-inner">
         <div class="guide-title">Submission Guidelines</div>
+
+        <div class="guide-group">
+          <div class="guide-head">Key dates</div>
+          <ul class="guide-list">
+            <li><span class="guide-date">October 1st</span> — pitches due</li>
+            <li><span class="guide-date">November 15th</span> — final work and statement due</li>
+          </ul>
+        </div>
 
         <div class="guide-group">
           <div class="guide-head">If you're writing an essay or article</div>
           <ul class="guide-list">
             <li>800–4,000 words; your angle on the theme — theory, reportage, personal essay, or criticism all work</li>
             <li>Existing work is fine if it fits thematically; this doesn't need to be made for us</li>
-            <li>A one-paragraph pitch first, not a finished draft — due by <span class="guide-date">October 1st</span></li>
-            <li>Final draft due <span class="guide-date">November 15th</span></li>
+            <li>A one-paragraph pitch first, not a finished draft</li>
             <li>Sourced/cited where relevant; Chicago-style, endnotes rather than inline</li>
           </ul>
         </div>
@@ -2408,7 +2570,15 @@
             <li>2–12 images, print-resolution (300 dpi minimum), plus an artist statement (150–1,000 words) about your work, practice, or the relation to the issue's theme</li>
             <li>Existing work is fine if it fits thematically; this doesn't need to be made for us</li>
             <li>No restriction on medium: website, fashion, photography, video, painting, installation, etc., all accepted</li>
-            <li>Files and statement due <span class="guide-date">November 15th</span></li>
+          </ul>
+        </div>
+
+        <div class="guide-group is-key">
+          <div class="guide-head">How to send your work</div>
+          <ul class="guide-list">
+            <li>Work comes to us as one shared folder link — Google Drive, Dropbox, or similar. Files can't be attached to the form</li>
+            <li>Set the folder's sharing to <strong>anyone with the link</strong> before you send it, or we won't be able to open it</li>
+            <li>If there's writing in what you want featured — an essay, an artist statement, captions — include it in the folder as a doc, not as an image or a screenshot</li>
           </ul>
         </div>
       </div>
@@ -2423,66 +2593,90 @@
       <input type="hidden" name="_captcha" value="false">
       <input type="text" name="_honey" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
-      <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label" for="p-name">Name <span class="req">*</span></label>
-          <input class="form-input" id="p-name" name="Name" type="text" required placeholder="Your name">
-        </div>
-        <div class="form-row">
-          <label class="form-label" for="p-email">Email <span class="req">*</span></label>
-          <input class="form-input" id="p-email" name="Email" type="email" required placeholder="you@email.com">
-        </div>
-      </div>
+      <p class="form-intro">
+        Two short sections. Fields marked <span class="req">*</span> are required.
+        <a class="form-jump" href="#submitGuidelines">Submission guidelines ↓</a>
+      </p>
 
-      <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label" for="p-pronouns">Pronouns <span class="opt">optional</span></label>
-          <input class="form-input" id="p-pronouns" name="Pronouns" type="text" placeholder="e.g. they/them">
-        </div>
-        <div class="form-row">
-          <label class="form-label" for="p-medium">Form / Medium of work <span class="req">*</span></label>
-          <select class="form-select" id="p-medium" name="Medium" required>
-            <option value="" disabled selected>Select a medium…</option>
-            <option value="Essay / Article">Essay / Article</option>
-            <option value="Advertisement">Advertisement</option>
-            <option value="Video">Video</option>
-            <option value="Physical work">Physical work</option>
-            <option value="Photography">Photography</option>
-            <option value="Illustration / Design">Illustration / Design</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-      </div>
+      <fieldset class="form-section">
+        <legend class="form-legend"><span class="form-legend-n">01</span> Who you are</legend>
+        <div class="form-section-body">
 
-      <div class="form-row">
-        <label class="form-label" for="p-pitch">Your pitch <span class="req">*</span></label>
-        <div class="form-hint">One paragraph — the idea, your angle on the theme, and the form it would take. Not a finished draft.</div>
-        <textarea class="form-textarea" id="p-pitch" name="Pitch" required
-                  style="min-height:170px;" placeholder="Write your pitch…"></textarea>
-      </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="form-label" for="p-name">Name <span class="req">*</span></label>
+              <input class="form-input" id="p-name" name="Name" type="text" required autocomplete="name" placeholder="Your name">
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="p-email">Email <span class="req">*</span></label>
+              <input class="form-input" id="p-email" name="Email" type="email" required autocomplete="email" placeholder="you@email.com">
+            </div>
+          </div>
 
-      <div class="form-row">
-        <label class="form-label" for="p-link">Link <span class="opt">optional</span></label>
-        <div class="form-hint">Portfolio, existing work, or anything that gives us a sense of your practice. Make sure it's set to "anyone with the link."</div>
-        <input class="form-input" id="p-link" name="Link" type="url" placeholder="https://">
-      </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="form-label" for="p-pronouns">Pronouns <span class="opt">optional</span></label>
+              <input class="form-input" id="p-pronouns" name="Pronouns" type="text" placeholder="e.g. they/them">
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="p-medium">Form / Medium of work <span class="req">*</span></label>
+              <select class="form-select" id="p-medium" name="Medium" required>
+                <option value="" disabled selected>Select a medium…</option>
+                <option value="Essay / Article">Essay / Article</option>
+                <option value="Advertisement">Advertisement</option>
+                <option value="Video">Video</option>
+                <option value="Physical work">Physical work</option>
+                <option value="Photography">Photography</option>
+                <option value="Illustration / Design">Illustration / Design</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <fieldset class="form-section">
+        <legend class="form-legend"><span class="form-legend-n">02</span> Your pitch</legend>
+        <div class="form-section-body">
+
+          <div class="form-row">
+            <label class="form-label" for="p-pitch">Your pitch <span class="req">*</span></label>
+            <div class="form-hint" id="p-pitch-hint">One paragraph — the idea, your angle on the theme, and the form it would take. Not a finished draft.</div>
+            <textarea class="form-textarea" id="p-pitch" name="Pitch" required aria-describedby="p-pitch-hint"
+                      style="min-height:170px;" placeholder="Write your pitch…"></textarea>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label" for="p-link">Link <span class="opt">optional</span></label>
+            <div class="form-hint" id="p-link-hint">Portfolio, existing work, or anything that gives us a sense of your practice.</div>
+            <ul class="hint-list">
+              <li>Files can't be attached here — to send work, link a shared folder (Google Drive, Dropbox, or similar)</li>
+              <li>Set the folder's sharing to <strong>anyone with the link</strong></li>
+              <li>Any writing goes in the folder as a doc, not as an image or a screenshot</li>
+            </ul>
+            <input class="form-input" id="p-link" name="Link" type="url" aria-describedby="p-link-hint" placeholder="https://">
+          </div>
+
+        </div>
+      </fieldset>
 
       <div class="form-status" id="pitchStatus" role="status" aria-live="polite"></div>
 
-      <button class="form-submit" id="pitchSubmitBtn" type="submit">Send Pitch →</button>
-
-      <p class="form-note">
-        If your work is selected for print, LOGIN will reach out by email with a
-        submission link for sending your final files. We read every pitch and
-        reply to the address you provide.
-      </p>
+      <div class="form-actions">
+        <button class="form-submit" id="pitchSubmitBtn" type="submit">Send Pitch →</button>
+        <p class="form-note">
+          If your work is selected for print, LOGIN will reach out by email with a
+          submission link for sending your final files. We read every pitch and
+          reply to the address you provide.
+        </p>
+      </div>
     </form>
 
     <!-- action is set at runtime from SUBMIT_EMAIL in the SUBMIT FORM script
          below (info@loginmag.net), so the address is never sitting in the
          markup for scrapers to lift. -->
-    <form class="submit-form" id="submitForm"
-          method="POST" enctype="multipart/form-data">
+    <form class="submit-form" id="submitForm" method="POST">
 
       <!-- FormSubmit config -->
       <input type="hidden" name="_subject" value="LOGIN — New Submission">
@@ -2490,88 +2684,104 @@
       <input type="hidden" name="_captcha" value="false">
       <input type="text" name="_honey" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
-      <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label" for="f-name">Name <span class="req">*</span></label>
-          <input class="form-input" id="f-name" name="Name" type="text" required placeholder="Your name">
-        </div>
-        <div class="form-row">
-          <label class="form-label" for="f-email">Email <span class="req">*</span></label>
-          <input class="form-input" id="f-email" name="Email" type="email" required placeholder="you@email.com">
-        </div>
-      </div>
+      <p class="form-intro">
+        Three short sections. Fields marked <span class="req">*</span> are required.
+        <a class="form-jump" href="#submitGuidelines">Submission guidelines ↓</a>
+      </p>
 
-      <div class="form-row" style="max-width:300px;">
-        <label class="form-label" for="f-pronouns">Pronouns <span class="opt">optional</span></label>
-        <input class="form-input" id="f-pronouns" name="Pronouns" type="text" placeholder="e.g. they/them">
-      </div>
+      <fieldset class="form-section">
+        <legend class="form-legend"><span class="form-legend-n">01</span> Who you are</legend>
+        <div class="form-section-body">
 
-      <div class="form-row">
-        <label class="form-label" for="f-title">Title of work <span class="req">*</span></label>
-        <input class="form-input" id="f-title" name="Title of work" type="text" required placeholder="Title of the work">
-      </div>
-
-      <div class="form-grid">
-        <div class="form-row">
-          <label class="form-label" for="f-medium">Form / Medium of work <span class="req">*</span></label>
-          <select class="form-select" id="f-medium" name="Medium" required>
-            <option value="" disabled selected>Select a medium…</option>
-            <option value="Advertisement">Advertisement</option>
-            <option value="Video">Video (please submit screenshots + link)</option>
-            <option value="Physical work">Physical work</option>
-            <option value="Photography">Photography</option>
-            <option value="Writing / Essay">Writing / Essay</option>
-            <option value="Illustration / Design">Illustration / Design</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label class="form-label" for="f-date">Date of creation <span class="req">*</span></label>
-          <input class="form-input" id="f-date" name="Date of creation" type="text" required placeholder="e.g. March 2026">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <label class="form-label" for="f-about">About the work <span class="req">*</span></label>
-        <div class="form-hint">A short statement about the work — what it is, the idea behind it, and any context that helps. This statement may be published in print alongside the work.</div>
-        <textarea class="form-textarea" id="f-about" name="About the work (statement)" required placeholder="Write your statement…"></textarea>
-      </div>
-
-      <div class="form-row">
-        <label class="form-label" for="f-link">Link <span class="opt">optional</span></label>
-        <div class="form-hint">For video, large files, or full print-res image sets — Drive, Dropbox, WeTransfer, Vimeo. Make sure it's set to "anyone with the link."</div>
-        <input class="form-input" id="f-link" name="Link" type="url" placeholder="https://">
-      </div>
-
-      <div class="form-row">
-        <label class="form-label" for="f-file-1">Attachments <span class="opt">optional</span></label>
-        <div class="form-hint">
-          Images and documents <strong>under 10MB</strong> can be attached
-          directly — any file type. Images should be print-resolution (300 dpi
-          minimum). For video, large files, or full print-res image sets, paste
-          a link above instead. The 10MB cap is across all files combined.
-        </div>
-        <div class="file-slots" id="fileSlots">
-          <div class="file-slot">
-            <input class="form-file" id="f-file-1" name="Attachment 1" type="file">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="form-label" for="f-name">Name <span class="req">*</span></label>
+              <input class="form-input" id="f-name" name="Name" type="text" required autocomplete="name" placeholder="Your name">
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="f-email">Email <span class="req">*</span></label>
+              <input class="form-input" id="f-email" name="Email" type="email" required autocomplete="email" placeholder="you@email.com">
+            </div>
           </div>
-        </div>
-        <button class="file-add" id="fileAdd" type="button">+ Add another file</button>
-        <div class="file-total" id="fileTotal" aria-live="polite"></div>
-      </div>
 
-      <div class="form-row">
-        <label class="form-label" for="f-why">Why do you want to submit? <span class="opt">optional</span></label>
-        <textarea class="form-textarea" id="f-why" name="Why submit" placeholder="What draws you to LOGIN?"></textarea>
-      </div>
+          <div class="form-row" style="max-width:300px;">
+            <label class="form-label" for="f-pronouns">Pronouns <span class="opt">optional</span></label>
+            <input class="form-input" id="f-pronouns" name="Pronouns" type="text" placeholder="e.g. they/them">
+          </div>
+
+        </div>
+      </fieldset>
+
+      <fieldset class="form-section">
+        <legend class="form-legend"><span class="form-legend-n">02</span> The work</legend>
+        <div class="form-section-body">
+
+          <div class="form-row">
+            <label class="form-label" for="f-title">Title of work <span class="req">*</span></label>
+            <input class="form-input" id="f-title" name="Title of work" type="text" required placeholder="Title of the work">
+          </div>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="form-label" for="f-medium">Form / Medium of work <span class="req">*</span></label>
+              <select class="form-select" id="f-medium" name="Medium" required>
+                <option value="" disabled selected>Select a medium…</option>
+                <option value="Advertisement">Advertisement</option>
+                <option value="Video">Video</option>
+                <option value="Physical work">Physical work</option>
+                <option value="Photography">Photography</option>
+                <option value="Writing / Essay">Writing / Essay</option>
+                <option value="Illustration / Design">Illustration / Design</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="f-date">Date of creation <span class="req">*</span></label>
+              <input class="form-input" id="f-date" name="Date of creation" type="text" required placeholder="e.g. March 2026">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="form-label" for="f-about">About the work <span class="req">*</span></label>
+            <div class="form-hint" id="f-about-hint">A short statement about the work — what it is, the idea behind it, and any context that helps. This statement may be published in print alongside the work.</div>
+            <textarea class="form-textarea" id="f-about" name="About the work (statement)" required aria-describedby="f-about-hint" placeholder="Write your statement…"></textarea>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <fieldset class="form-section">
+        <legend class="form-legend"><span class="form-legend-n">03</span> Sending your work</legend>
+        <div class="form-section-body">
+
+          <div class="form-row">
+            <label class="form-label" for="f-link">Link to your folder <span class="req">*</span></label>
+            <div class="form-hint" id="f-link-hint">Everything comes to us as one shared folder — Google Drive, Dropbox, or similar. Files can't be attached to this form.</div>
+            <ul class="hint-list">
+              <li>Set the folder's sharing to <strong>anyone with the link</strong> before you send it, or we won't be able to open it</li>
+              <li>Images should be print-resolution — 300 dpi minimum</li>
+              <li>If there's writing in what you want featured, include it in the folder as a doc, not as an image or a screenshot</li>
+            </ul>
+            <input class="form-input" id="f-link" name="Folder link" type="url" required aria-describedby="f-link-hint" placeholder="https://">
+          </div>
+
+          <div class="form-row">
+            <label class="form-label" for="f-why">Why do you want to submit? <span class="opt">optional</span></label>
+            <textarea class="form-textarea" id="f-why" name="Why submit" placeholder="What draws you to LOGIN?"></textarea>
+          </div>
+
+        </div>
+      </fieldset>
 
       <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
 
-      <button class="form-submit" id="formSubmitBtn" type="submit">Send Submission →</button>
-
-      <p class="form-note">
-        Submitting sends your work directly to LOGIN by email. We review on a rolling basis and reply to the address you provide.
-      </p>
+      <div class="form-actions">
+        <button class="form-submit" id="formSubmitBtn" type="submit">Send Submission →</button>
+        <p class="form-note">
+          Submitting sends your folder link and statement directly to LOGIN by
+          email. We review on a rolling basis and reply to the address you provide.
+        </p>
+      </div>
     </form>
 
     </div><!-- /.submit-layout -->
@@ -3762,121 +3972,20 @@ if (heroBook && heroStage) {
   const btn    = document.getElementById("formSubmitBtn");
   const status = document.getElementById("formStatus");
 
-  /* ── Attachments ──────────────────────────────────────────────
-     FormSubmit forwards one file per <input>, so "multiple" on a single
-     input would only ever send the first file. Each attachment therefore
-     gets its own input, added on demand.
-
-     The 10MB ceiling is FormSubmit's, and it is enforced on their end by
-     dropping the submission — so we check it here and refuse to send,
-     rather than letting someone's work vanish into a silent failure. */
-  const MAX_TOTAL_BYTES = 10 * 1024 * 1024;
-  const MAX_FILE_SLOTS  = 10;
-
-  const slots     = document.getElementById("fileSlots");
-  const addBtn    = document.getElementById("fileAdd");
-  const totalNote = document.getElementById("fileTotal");
-
-  function eachFile() {
-    return Array.from(form.querySelectorAll('input[type="file"]'))
-                .flatMap(i => Array.from(i.files || []));
-  }
-
-  function totalBytes() {
-    return eachFile().reduce((sum, f) => sum + f.size, 0);
-  }
-
-  function mb(bytes) { return (bytes / 1048576).toFixed(1) + "MB"; }
-
-  function renumber() {
-    slots.querySelectorAll('input[type="file"]').forEach((input, i) => {
-      input.name = "Attachment " + (i + 1);
-      input.id   = "f-file-" + (i + 1);
-    });
-    if (addBtn) {
-      addBtn.disabled =
-        slots.querySelectorAll('input[type="file"]').length >= MAX_FILE_SLOTS;
-    }
-  }
-
-  function updateTotal() {
-    if (!totalNote) return;
-    const files = eachFile();
-    const bytes = totalBytes();
-    if (!files.length) { totalNote.textContent = ""; totalNote.className = "file-total"; return; }
-    const over = bytes > MAX_TOTAL_BYTES;
-    totalNote.className = "file-total" + (over ? " over" : "");
-    totalNote.textContent =
-      files.length + (files.length === 1 ? " file" : " files") + " — " + mb(bytes) +
-      (over ? " — over the 10MB limit. Remove a file, or send the large ones as a link instead."
-            : " of 10MB");
-  }
-
-  function addSlot() {
-    const count = slots.querySelectorAll('input[type="file"]').length;
-    if (count >= MAX_FILE_SLOTS) return;
-
-    const row = document.createElement("div");
-    row.className = "file-slot";
-
-    const input = document.createElement("input");
-    input.className = "form-file";
-    input.type = "file";
-
-    const drop = document.createElement("button");
-    drop.className = "file-drop";
-    drop.type = "button";
-    drop.setAttribute("aria-label", "Remove this file");
-    drop.textContent = "×";
-    drop.addEventListener("click", () => { row.remove(); renumber(); updateTotal(); });
-
-    row.appendChild(input);
-    row.appendChild(drop);
-    slots.appendChild(row);
-    renumber();
-    input.focus();
-  }
-
-  if (slots) {
-    addBtn?.addEventListener("click", addSlot);
-    slots.addEventListener("change", updateTotal);
-    renumber();
-  }
-
   const configured = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(SUBMIT_EMAIL);
 
   if (configured) {
     form.action = "https://formsubmit.co/" + SUBMIT_EMAIL;
 
-    // Files require FormSubmit's standard (non-AJAX) endpoint, which redirects
-    // after sending — so we send it back to this page with ?submitted=1.
+    // FormSubmit's standard endpoint redirects after sending — so we send it
+    // back to this page with ?submitted=1.
     const next = document.createElement("input");
     next.type = "hidden";
     next.name = "_next";
     next.value = location.origin + location.pathname + "?submitted=1";
     form.appendChild(next);
 
-    form.addEventListener("submit", e => {
-      /* Refuse an over-limit send rather than let FormSubmit drop it. */
-      if (totalBytes() > MAX_TOTAL_BYTES) {
-        e.preventDefault();
-        if (status) {
-          status.className = "form-status err show";
-          status.textContent =
-            "Your attachments come to " + mb(totalBytes()) + ", over the 10MB email limit. " +
-            "Remove the largest files and send them as a link instead (Drive, Dropbox, WeTransfer, Vimeo) — " +
-            "everything else on the form will still come through.";
-          status.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-        return;
-      }
-
-      /* Empty file inputs would post as blank attachments; drop them so the
-         email carries only real files. Disabled fields are not submitted. */
-      form.querySelectorAll('input[type="file"]').forEach(i => {
-        if (!i.files || !i.files.length) i.disabled = true;
-      });
-
+    form.addEventListener("submit", () => {
       btn.disabled = true;
       btn.textContent = "Sending…";
     });
