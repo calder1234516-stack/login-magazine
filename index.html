@@ -1303,6 +1303,69 @@
     flex: none; width: 20px; height: 20px; margin: 1px 0 0;
     accent-color: var(--white); cursor: pointer;
   }
+  .form-hint strong { color: var(--white); font-weight: 700; }
+
+  /* Jump from the top of the Submit page to the form — phones only, where
+     the call text above runs several screens long. */
+  .pitch-jump { display: none; }
+
+  /* ── FORM ON PHONES ───────────────────────────────────────────
+     Bigger type throughout, 16px fields (below that iOS zooms the page in
+     on every tap), labels without the wide caps tracking, and a
+     full-width button. */
+  @media (max-width: 620px) {
+    .pitch-jump {
+      display: block;
+      margin: 0 0 24px;
+      padding: 16px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: var(--white);
+    }
+    #submitContent[data-mode="submit"] .pitch-jump { display: none; }
+
+    .submit-form { gap: 40px; }
+    .form-intro { font-size: 14px; letter-spacing: 0.01em; line-height: 1.5; }
+    .form-legend { font-size: 13px; letter-spacing: 0.14em; margin-bottom: 22px; }
+    .form-section-body { gap: 26px; }
+
+    .form-label {
+      font-size: 14px;
+      letter-spacing: 0.06em;
+      color: var(--white);
+    }
+    .form-label .opt { font-size: 12px; letter-spacing: 0.06em; }
+    .form-hint,
+    .hint-list li { font-size: 14px; line-height: 1.55; letter-spacing: 0; }
+
+    .form-input,
+    .form-select,
+    .form-textarea { font-size: 16px; padding: 14px; }
+    .form-input,
+    .form-select { min-height: 50px; }
+    .form-select { background-position: calc(100% - 20px) 21px, calc(100% - 15px) 21px; }
+
+    .word-count { font-size: 13px; }
+
+    .form-check { font-size: 15px; gap: 14px; }
+    .form-check input { width: 24px; height: 24px; margin-top: 0; }
+
+    .form-submit {
+      align-self: stretch;
+      width: 100%;
+      font-size: 14px;
+      padding: 18px 22px;
+    }
+    .form-note { font-size: 14px; letter-spacing: 0; line-height: 1.55; }
+    .form-status { font-size: 15px; }
+
+    .guide-head { font-size: 13px; }
+    .guide-list li { font-size: 15px; }
+  }
 
 
   /* ── ISSUE DETAIL PAGE ──────────────────────────────────────── */
@@ -2403,6 +2466,7 @@
           <dd class="mode-submit">One shared folder link</dd>
         </div>
       </dl>
+      <a class="pitch-jump mode-pitch" href="#pitchForm">Send a pitch ↓</a>
 
       <div class="submit-body">
         <p>This issue explores the notion of cyberpunk as a lens to understand the current state of the world, rather than just a science fiction genre. The dystopian pictures of the future that the genre imagined are already showing up as signals in everyday life, and it's not a coincidence: it's downstream of the media that Silicon Valley tech bros and people in power grew up consuming and then built toward. Cyberpunk became a blueprint, not a warning.</p>
@@ -2552,12 +2616,7 @@
 
           <div class="form-row">
             <label class="form-label" for="p-link">Links <span class="opt">optional</span></label>
-            <div class="form-hint" id="p-link-hint">Portfolio, existing work, or anything that gives us a sense of your practice.</div>
-            <ul class="hint-list">
-              <li>Files can't be attached here — to send work, link a shared folder (Google Drive, Dropbox, or similar)</li>
-              <li>Set the folder's sharing to <strong>anyone with the link</strong></li>
-              <li>Any writing goes in the folder as a doc, not as an image or a screenshot</li>
-            </ul>
+            <div class="form-hint" id="p-link-hint">Your portfolio, past work, or a shared folder (Google Drive, Dropbox). Files can't be attached here. If you link a folder, set it to <strong>anyone with the link</strong>.</div>
             <textarea class="form-textarea" id="p-link" name="Links" aria-describedby="p-link-hint"
                       style="min-height:72px;" placeholder="One link per line"></textarea>
           </div>
