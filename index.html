@@ -1326,7 +1326,13 @@
       color: var(--blue);
       background: var(--white);
     }
-    #submitContent[data-mode="submit"] .pitch-jump { display: none; }
+    .pitch-jump:has(+ .pitch-jump--guide) { margin-bottom: 10px; }
+    .pitch-jump--guide {
+      color: var(--white);
+      background: transparent;
+      border: 1px solid var(--white-60);
+    }
+    #submitContent[data-mode="submit"] .pitch-jump.mode-pitch { display: none; }
 
     .submit-form { gap: 40px; }
     .form-intro { font-size: 14px; letter-spacing: 0.01em; line-height: 1.5; }
@@ -2467,6 +2473,7 @@
         </div>
       </dl>
       <a class="pitch-jump mode-pitch" href="#pitchForm">Send a pitch ↓</a>
+      <a class="pitch-jump pitch-jump--guide" href="#submitGuidelines">Submission guidelines ↓</a>
 
       <div class="submit-body">
         <p>This issue explores the notion of cyberpunk as a lens to understand the current state of the world, rather than just a science fiction genre. The dystopian pictures of the future that the genre imagined are already showing up as signals in everyday life, and it's not a coincidence: it's downstream of the media that Silicon Valley tech bros and people in power grew up consuming and then built toward. Cyberpunk became a blueprint, not a warning.</p>
