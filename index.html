@@ -1292,38 +1292,6 @@
   .form-hp { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; }
 
 
-  /* ── SUBMIT PASSWORD GATE ───────────────────────────────────── */
-  .submit-gate {
-    max-width: 420px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-top: 8px;
-  }
-  .submit-gate[hidden] { display: none; }
-
-  .gate-intro {
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--white-60);
-    line-height: 1.7;
-  }
-
-  .gate-field { display: flex; flex-direction: column; gap: 8px; }
-
-  .gate-row { display: flex; gap: 10px; align-items: stretch; }
-  .gate-row .form-input { flex: 1; min-width: 0; }
-  .gate-row .form-submit { align-self: stretch; white-space: nowrap; }
-
-  .gate-error {
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: #ffd9d9;
-    min-height: 1em;
-  }
-  .gate-error[hidden] { display: none; }
-
   /* ── ISSUE DETAIL PAGE ──────────────────────────────────────── */
   .issue-detail { display: flex; flex-direction: column; gap: 52px; }
 
@@ -2459,25 +2427,7 @@
   <div class="tab-panel" id="tab-submit">
     <div class="section-label">Submit</div>
 
-    <!-- Password gate. Shown until the correct password unlocks the form.
-         The password itself lives nowhere in this file — only a PBKDF2 hash
-         of it does. To change it, open set-password.html in a browser. -->
-    <div class="submit-gate" id="submitGate">
-      <p class="gate-intro">
-        Submissions to LOGIN are by invitation. Enter the password you were given to open the form.
-      </p>
-      <form class="gate-field" id="gateForm" autocomplete="off">
-        <label class="form-label" for="gatePass">Password</label>
-        <div class="gate-row">
-          <input class="form-input" id="gatePass" type="password" name="gate"
-                 autocomplete="current-password" placeholder="Enter password" required>
-          <button class="form-submit" id="gateBtn" type="submit">Enter</button>
-        </div>
-        <div class="gate-error" id="gateError" role="alert" hidden></div>
-      </form>
-    </div>
-
-    <div id="submitContent" hidden>
+    <div id="submitContent">
 
     <div class="submit-head">
       <h2 class="submit-title">Issue 02: The Cyberpunk Issue</h2>
@@ -3801,34 +3751,13 @@ if (heroBook && heroStage) {
   }
 }());
 
-/* ── SUBMIT: PASSWORD GATE ───────────────────────────────────
-   The Submit tab has no nav link — it is reachable only at
-   yoursite.com/?submit  and stays locked until the password is entered.
-
-   The password is NOT in this file. Only a PBKDF2-SHA256 hash of it is, at
-   200,000 iterations, so guessing it offline is slow and expensive. To change
-   the password, open set-password.html in a browser and paste the two values
-   it prints over GATE_SALT and GATE_HASH below.
-
-   Honest limit: this runs in the visitor's browser, so it is a lock on a glass
-   house — it stops everyone browsing normally, but not someone determined who
-   reads the source. Good enough for a submissions form; do not put anything
-   genuinely confidential behind it. */
+/* ── SUBMIT: ROUTING ─────────────────────────────────────────
+   The Submit tab has no nav link — it is reachable only from the links
+   sent out (yoursite.com/?pitch or ?submit), which open the form directly. */
 (function () {
-  const GATE_SALT  = "6409c3a08b8d96f3a3b2d82722a85673";
-  const GATE_HASH  = "63d374259b0239f540818e3f2ecae255031e09dd81dad6eda975cedde94ba218";
-  const ITERATIONS = 200000;
-
   const panel   = document.getElementById("tab-submit");
-  const gate    = document.getElementById("submitGate");
   const content = document.getElementById("submitContent");
-  const form    = document.getElementById("gateForm");
-  const input   = document.getElementById("gatePass");
-  const btn     = document.getElementById("gateBtn");
-  const errEl   = document.getElementById("gateError");
-  if (!panel || !gate || !content || !form) return;
-
-  const KEY = "login-submit-unlocked";
+  if (!panel || !content) return;
 
   /* Show the Submit panel and hide every other one. There is no nav link to
      click, so this does the same work the tab router does. */
@@ -3841,58 +3770,6 @@ if (heroBook && heroStage) {
     panel.classList.add("active");
     window.scrollTo({ top: 0, behavior: "auto" });
   }
-
-  function unlock() {
-    gate.hidden = true;
-    content.hidden = false;
-    try { sessionStorage.setItem(KEY, "1"); } catch (_) {}
-  }
-
-  const hex = buf => [...new Uint8Array(buf)]
-    .map(b => b.toString(16).padStart(2, "0")).join("");
-
-  const bytes = h => new Uint8Array(h.match(/.{2}/g).map(p => parseInt(p, 16)));
-
-  async function check(password) {
-    const key = await crypto.subtle.importKey(
-      "raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-    const bits = await crypto.subtle.deriveBits(
-      { name: "PBKDF2", salt: bytes(GATE_SALT), iterations: ITERATIONS, hash: "SHA-256" },
-      key, 256);
-    return hex(bits) === GATE_HASH;
-  }
-
-  function fail(msg) {
-    errEl.textContent = msg;
-    errEl.hidden = false;
-    input.value = "";
-    input.focus();
-  }
-
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
-    const value = input.value;
-    if (!value) return;
-    errEl.hidden = true;
-    btn.disabled = true;
-    btn.textContent = "Checking…";
-    try {
-      if (await check(value)) unlock();
-      else fail("That password isn't right. Check it and try again.");
-    } catch (_) {
-      /* crypto.subtle is unavailable over plain http:// or file:// — the live
-         HTTPS site is fine, but a local preview would land here. */
-      fail("This browser can't verify the password on an insecure connection. Open the site over https.");
-    }
-    btn.disabled = false;
-    btn.textContent = "Enter";
-  });
-
-  /* Stay unlocked for the rest of the browsing session, so returning from a
-     successful send does not ask for the password a second time. */
-  let already = null;
-  try { already = sessionStorage.getItem(KEY); } catch (_) {}
-  if (already === "1") unlock();
 
   /* Routing: ?pitch and ?submit both open this panel, and so do the
      ?pitched=1 / ?submitted=1 return trips FormSubmit sends people back on.
@@ -3911,7 +3788,6 @@ if (heroBook && heroStage) {
     } else {
       openSubmitTab();
     }
-    if (!gate.hidden) setTimeout(() => input.focus(), 120);
   }
 }());
 
@@ -4000,8 +3876,8 @@ if (heroBook && heroStage) {
     });
   }
 
-  // On return from a successful submission, confirm. The gate script has
-  // already switched to this tab and unlocked it for the session.
+  // On return from a successful submission, confirm. The routing script has
+  // already switched to this tab.
   if (new URLSearchParams(location.search).get("submitted") === "1") {
     if (status) {
       status.className = "form-status ok show";
