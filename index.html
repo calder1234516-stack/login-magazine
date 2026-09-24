@@ -6,7 +6,8 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; form-action 'self' https://formsubmit.co; frame-ancestors 'none'; base-uri 'self';">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Login Magazine</title>
-<!-- Generated from favicon/metalabel logo.png, cropped square to the wordmark -->
+<!-- Generated from favicon/LOGIN LOGO FINAL web.svg: white wordmark on a black square -->
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -26,7 +27,7 @@
     --white-35: rgba(255,255,255,0.35);    /* thin borders / dividers only */
     --white-15: rgba(255,255,255,0.15);
     --white-08: rgba(255,255,255,0.08);
-    --font: 'Archivo', sans-serif;
+    --font: 'Bahnschrift', 'Archivo', sans-serif;   /* Bahnschrift is a Windows system font; other devices use Archivo */
     --display: 'Space Grotesk', 'Archivo', sans-serif;
   }
 
@@ -1012,9 +1013,9 @@
   .form-select option { background: var(--blue); color: var(--white); }
 
   /* ── PITCH vs FULL SUBMISSION ───────────────────────────────
-     One panel serves both stages. ?pitch shows the pitch form (the link
-     that goes out to everyone now); ?submit shows the full submission
-     form (sent later, only to contributors who were selected). */
+     One panel serves both stages. /submit (and the Submit nav link) shows
+     the public pitch form; ?final shows the full submission form (sent
+     later, only to contributors who were selected). */
   #submitContent[data-mode="pitch"]  #submitForm,
   #submitContent[data-mode="pitch"]  .mode-submit,
   #submitContent[data-mode="submit"] #pitchForm,
@@ -1290,6 +1291,18 @@
 
   /* honeypot */
   .form-hp { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; }
+
+  .word-count { margin-top: 6px; text-align: right; }
+  .word-count.over { color: var(--white); font-weight: 700; }
+
+  .form-check {
+    display: flex; gap: 12px; align-items: flex-start;
+    font-size: 14px; line-height: 1.5; color: var(--white); cursor: pointer;
+  }
+  .form-check input {
+    flex: none; width: 20px; height: 20px; margin: 1px 0 0;
+    accent-color: var(--white); cursor: pointer;
+  }
 
 
   /* ── ISSUE DETAIL PAGE ──────────────────────────────────────── */
@@ -1861,58 +1874,6 @@
     .email-card { animation: none; }
   }
 
-  /* ── INTRO OVERLAY ──────────────────────────────────────────── */
-  #intro-overlay {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: 9999;
-    overflow: hidden;
-    transition: opacity 0.9s ease;
-  }
-
-  /* The clip stays transparent until it is genuinely playing, which keeps the
-     native start-playback button off screen — Safari/iOS paint one over any
-     inline video that hasn't started, and the ::-webkit-media-controls rules
-     further down don't reliably suppress it. The overlay behind is already
-     black, so there is nothing to see in the meantime; if autoplay is refused
-     the intro just stays black behind the logo and dissolves on schedule.
-     Opacity rather than display/visibility: those would make the element "not
-     visible" to Chrome's autoplay heuristics and could stop it starting. */
-  #intro-video {
-    opacity: 0;
-    transition: opacity 0.25s linear;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  #intro-video.playing { opacity: 1; }
-
-  /* ── INTRO LOGO OVERLAY ─────────────────────────────────────── */
-  #intro-logo-wrap {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
-
-  #intro-logo-wrap img {
-    width: clamp(160px, 26vw, 360px);
-    height: auto;
-    filter: drop-shadow(0 0 48px rgba(255,255,255,0.5)) drop-shadow(0 2px 20px rgba(0,0,0,0.98));
-  }
-
-  @media (max-width: 700px) {
-    #intro-logo-wrap img {
-      width: clamp(120px, 46vw, 240px);
-    }
-  }
-
   /* hero tabs remove the main top padding so content fills to nav */
   #tab-issues { margin-top: -40px; }
   #tab-events { margin-top: -40px; }
@@ -2271,20 +2232,10 @@
 </head>
 <body>
 
-<!-- INTRO OVERLAY — shown once per session -->
-<div id="intro-overlay">
-  <video id="intro-video" class="ambient-video" src="video/loginwebvideo.mp4"
-         autoplay muted playsinline preload="auto"
-         disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
-  <div id="intro-logo-wrap">
-    <img src="new logo.svg" alt="LOGIN Magazine">
-  </div>
-</div>
-
 <header class="header">
   <div class="logo-block">
     <a class="logo-link" id="logoHome" href="#" aria-label="LOGIN Magazine — Home">
-      <img class="logo-mark" src="new logo.svg" alt="LOGIN Magazine">
+      <img class="logo-mark" src="login-logo.png" alt="LOGIN Magazine">
     </a>
   </div>
   <button class="nav-hamburger" id="navHamburger" aria-label="Toggle navigation" aria-expanded="false">
@@ -2298,7 +2249,7 @@
     <span class="nav-link" data-tab="events" role="tab" tabindex="0" data-activate aria-selected="false">Events</span>
     <span class="nav-link" data-tab="about" role="tab" tabindex="0" data-activate aria-selected="false">About</span>
     <span class="nav-link" data-tab="stockists" role="tab" tabindex="0" data-activate aria-selected="false">Stockists</span>
-    <!-- <span class="nav-link" data-tab="submit" role="tab" tabindex="0" data-activate aria-selected="false">Submit</span> -->
+    <span class="nav-link" data-tab="submit" role="tab" tabindex="0" data-activate aria-selected="false">Submit</span>
     <!-- Instagram is a footer link only — see .footer-links -->
   </div>
 </nav>
@@ -2443,7 +2394,7 @@
         </div>
         <div>
           <dt>Deadline</dt>
-          <dd class="mode-pitch">October 1st</dd>
+          <dd class="mode-pitch">October 5th</dd>
           <dd class="mode-submit">November 15th</dd>
         </div>
         <div>
@@ -2473,7 +2424,7 @@
         finished draft. If your work is selected for print, LOGIN will reach out
         by email with a submission link for sending your final files.
       </p>
-      <div class="stage-due">Pitches due October 1st</div>
+      <div class="stage-due">Pitches due October 5th</div>
     </div>
 
     <div class="stage-card mode-submit">
@@ -2499,7 +2450,7 @@
         <div class="guide-group">
           <div class="guide-head">Key dates</div>
           <ul class="guide-list">
-            <li><span class="guide-date">October 1st</span> — pitches due</li>
+            <li><span class="guide-date">October 5th</span> — pitches due</li>
             <li><span class="guide-date">November 15th</span> — final work and statement due</li>
           </ul>
         </div>
@@ -2534,13 +2485,14 @@
       </div>
     </aside>
 
-    <!-- PITCH FORM — the ?pitch stage. Action is set at runtime, same as the
+    <!-- PITCH FORM — the /submit stage. Action is set at runtime, same as the
          submission form below. -->
     <form class="submit-form" id="pitchForm" method="POST">
 
       <input type="hidden" name="_subject" value="LOGIN — New Pitch (Issue 02)">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_autoresponse" value="Got it — your pitch for LOGIN Issue 02 arrived. Pitches close October 5th, and we'll be in touch by email after that. If your work is selected for print, that email will include a link for sending your final files. — LOGIN">
       <input type="text" name="_honey" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
       <p class="form-intro">
@@ -2565,13 +2517,13 @@
 
           <div class="form-grid">
             <div class="form-row">
-              <label class="form-label" for="p-pronouns">Pronouns <span class="opt">optional</span></label>
-              <input class="form-input" id="p-pronouns" name="Pronouns" type="text" placeholder="e.g. they/them">
+              <label class="form-label" for="p-handle">Instagram or website <span class="opt">optional</span></label>
+              <input class="form-input" id="p-handle" name="Instagram or website" type="text" autocomplete="url" placeholder="@handle or https://">
             </div>
             <div class="form-row">
-              <label class="form-label" for="p-medium">Form / Medium of work <span class="req">*</span></label>
-              <select class="form-select" id="p-medium" name="Medium" required>
-                <option value="" disabled selected>Select a medium…</option>
+              <label class="form-label" for="p-medium">Format <span class="req">*</span></label>
+              <select class="form-select" id="p-medium" name="Format" required>
+                <option value="" disabled selected>Select a format…</option>
                 <option value="Essay / Article">Essay / Article</option>
                 <option value="Advertisement">Advertisement</option>
                 <option value="Video">Video</option>
@@ -2592,20 +2544,29 @@
 
           <div class="form-row">
             <label class="form-label" for="p-pitch">Your pitch <span class="req">*</span></label>
-            <div class="form-hint" id="p-pitch-hint">One paragraph — the idea, your angle on the theme, and the form it would take. Not a finished draft.</div>
-            <textarea class="form-textarea" id="p-pitch" name="Pitch" required aria-describedby="p-pitch-hint"
+            <div class="form-hint" id="p-pitch-hint">150 words max. The idea, your angle on the theme, and the form it would take. Not a finished draft.</div>
+            <textarea class="form-textarea" id="p-pitch" name="Pitch" required aria-describedby="p-pitch-hint p-pitch-count"
                       style="min-height:170px;" placeholder="Write your pitch…"></textarea>
+            <div class="form-hint word-count" id="p-pitch-count" aria-live="polite">0 / 150 words</div>
           </div>
 
           <div class="form-row">
-            <label class="form-label" for="p-link">Link <span class="opt">optional</span></label>
+            <label class="form-label" for="p-link">Links <span class="opt">optional</span></label>
             <div class="form-hint" id="p-link-hint">Portfolio, existing work, or anything that gives us a sense of your practice.</div>
             <ul class="hint-list">
               <li>Files can't be attached here — to send work, link a shared folder (Google Drive, Dropbox, or similar)</li>
               <li>Set the folder's sharing to <strong>anyone with the link</strong></li>
               <li>Any writing goes in the folder as a doc, not as an image or a screenshot</li>
             </ul>
-            <input class="form-input" id="p-link" name="Link" type="url" aria-describedby="p-link-hint" placeholder="https://">
+            <textarea class="form-textarea" id="p-link" name="Links" aria-describedby="p-link-hint"
+                      style="min-height:72px;" placeholder="One link per line"></textarea>
+          </div>
+
+          <div class="form-row">
+            <label class="form-check">
+              <input type="checkbox" name="Terms" value="Agreed" required>
+              <span>I understand contributions are unpaid, and that LOGIN may lay out my work for print and share it on Instagram with credit. <span class="req">*</span></span>
+            </label>
           </div>
 
         </div>
@@ -3183,6 +3144,16 @@ document.addEventListener("keydown", e => {
 });
 
 /* ── TAB ROUTING ─────────────────────────────────────────── */
+/* The Submit tab lives at loginmag.net/submit. That URL is a small redirect
+   page (submit/index.html) that sends people to /?pitch, and this puts
+   /submit back in the address bar so the link people copy is the clean one. */
+function setSubmitPath(onSubmit) {
+  if (!/^https?:$/.test(location.protocol)) return;   // file:// preview
+  // The ?final link opens the full submission form; leave that URL alone.
+  if (onSubmit && document.getElementById("submitContent")?.dataset.mode === "submit") return;
+  const want = onSubmit ? "/submit" : "/";
+  if (location.pathname !== want) history.replaceState(null, "", want + location.hash);
+}
 document.querySelectorAll(".nav-link[data-tab]").forEach(link => {
   link.addEventListener("click", () => {
     const tab = link.dataset.tab;
@@ -3195,6 +3166,7 @@ document.querySelectorAll(".nav-link[data-tab]").forEach(link => {
     if (link.hasAttribute("aria-selected")) link.setAttribute("aria-selected", "true");
     const panel = document.getElementById("tab-" + tab);
     if (panel) panel.classList.add("active");
+    setSubmitPath(tab === "submit");
     playAmbientVideos();          // the About clip only starts once its tab shows
   });
 });
@@ -3377,142 +3349,6 @@ class BookController {
     requestAnimationFrame(step);
   }
 }
-
-/* ── INTRO: VIDEO → WIN95 BLOCK DISSOLVE INTO SITE ─────────── */
-(function () {
-  const overlay = document.getElementById('intro-overlay');
-  const video   = document.getElementById('intro-video');
-
-  if (sessionStorage.getItem('login-intro-seen')) {
-    if (overlay) overlay.remove();
-    return;
-  }
-  sessionStorage.setItem('login-intro-seen', '1');
-
-  if (!overlay || !video) return;
-
-  video.playbackRate = 1;
-
-  /* Only reveal the clip once frames are actually coming (see #intro-video) */
-  video.addEventListener('playing', () => video.classList.add('playing'));
-  video.addEventListener('pause',   () => video.classList.remove('playing'));
-
-  function win95Dissolve() {
-    const W = window.innerWidth, H = window.innerHeight;
-
-    /* Fine pixel grid — the landing reads like a file being compressed away.
-       Step up the block size on huge viewports so the per-frame block count
-       stays sane (each fading block is repainted every frame). */
-    let BLOCK = 6;
-    while (Math.ceil(W / BLOCK) * Math.ceil(H / BLOCK) > 46000) BLOCK += 2;
-    const cols = Math.ceil(W / BLOCK);
-    const rows = Math.ceil(H / BLOCK);
-
-    // canvas sits above everything while transition runs
-    const cvs = document.createElement('canvas');
-    cvs.width = W; cvs.height = H;
-    cvs.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:10000;pointer-events:none';
-    document.body.appendChild(cvs);
-    const ctx = cvs.getContext('2d');
-
-    // fill with Windows 95 navy
-    ctx.fillStyle = '#000080';
-    ctx.fillRect(0, 0, W, H);
-
-    // subtle horizontal scanlines
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
-    for (let y = 0; y < H; y += 2) ctx.fillRect(0, y, W, 1);
-
-    /* One tile of the same navy + scanline treatment. Repainting a partly
-       faded block means clearing it and stamping this back at a lower alpha,
-       so BLOCK stays even to keep the scanline parity aligned. */
-    const tile = document.createElement('canvas');
-    tile.width = BLOCK; tile.height = BLOCK;
-    const tctx = tile.getContext('2d');
-    tctx.fillStyle = '#000080';
-    tctx.fillRect(0, 0, BLOCK, BLOCK);
-    tctx.fillStyle = 'rgba(0,0,0,0.18)';
-    for (let y = 0; y < BLOCK; y += 2) tctx.fillRect(0, y, BLOCK, 1);
-
-    // drop the video overlay now that canvas covers it
-    overlay.remove();
-
-    /* Shuffled block list. Each block also carries its own fade length, so at
-       any instant the screen holds a spread of opacities rather than a hard
-       edge between "there" and "gone". */
-    const blocks = [];
-    for (let r = 0; r < rows; r++)
-      for (let c = 0; c < cols; c++)
-        blocks.push([c * BLOCK, r * BLOCK, 0]);
-    for (let i = blocks.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
-    }
-    const total = blocks.length;
-    for (let i = 0; i < total; i++) blocks[i][2] = 0.10 + Math.random() * 0.28;
-
-    const DISSOLVE = 1100;
-    const t0 = performance.now();
-    let done = 0;   // every block before this index is fully cleared
-
-    function frame(ts) {
-      const p = Math.min((ts - t0) / DISSOLVE, 1);
-      const eased = 1 - Math.pow(1 - p, 2.2);
-
-      /* Leading edge: the latest-starting block still has start = (i/total)
-         × (1 − maxFade), so 1/(1 − 0.38) ≈ 1.7 covers everything begun. */
-      const head = Math.min(Math.floor(eased * total * 1.7) + 1, total);
-
-      for (let i = done; i < head; i++) {
-        const b = blocks[i];
-        const fade = b[2];
-        const start = (i / total) * (1 - fade);
-        let a = 1 - (eased - start) / fade;
-        if (a >= 1) continue;             // not started yet
-        if (a < 0) a = 0;
-        ctx.clearRect(b[0], b[1], BLOCK, BLOCK);
-        if (a > 0) {
-          ctx.globalAlpha = a;
-          ctx.drawImage(tile, b[0], b[1]);
-          ctx.globalAlpha = 1;
-        }
-      }
-      // retire finished blocks off the front so the loop stays short
-      while (done < total) {
-        const b = blocks[done];
-        if (eased < (done / total) * (1 - b[2]) + b[2]) break;
-        done++;
-      }
-
-      if (p < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        ctx.clearRect(0, 0, W, H);
-        cvs.style.transition = 'opacity 0.55s ease';
-        cvs.style.opacity = '0';
-        setTimeout(() => cvs.remove(), 560);
-        // let the email popup know the intro is finished
-        document.dispatchEvent(new Event('login:introdone'));
-      }
-    }
-    requestAnimationFrame(frame);
-  }
-
-  const failsafe = setTimeout(trigger, 60000);
-  // Keep the landing on screen only ~1.5s, then dissolve out regardless of video length
-  const autoAdvance = setTimeout(trigger, 1500);
-
-  let ran = false;
-  function trigger() {
-    if (ran) return;
-    ran = true;
-    clearTimeout(failsafe);
-    clearTimeout(autoAdvance);
-    win95Dissolve();
-  }
-
-  video.addEventListener('ended', trigger);
-}());
 
 /* ── HERO BOOK FIT ──────────────────────────────────────────── */
 /* .book is --bw wide by --bh tall, a true 8.5 × 11 page. Keep these in step
@@ -3727,7 +3563,7 @@ if (heroBook && heroStage) {
     if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") { e.preventDefault(); open(); }
   });
 
-  /* Auto-open: after the intro clears, let the book gently spin for ~5s,
+  /* Auto-open: after landing, let the book gently spin for ~5s,
      then whip it through a fast spin that decelerates face-on and opens
      into the spreads — one fluid motion. Cancels if the visitor grabs it. */
   let autoOpenCancelled = false;
@@ -3744,50 +3580,41 @@ if (heroBook && heroStage) {
       }
     }, 5000);
   }
-  if (document.getElementById("intro-overlay")) {
-    document.addEventListener("login:introdone", scheduleAutoOpen, { once: true });
-  } else {
-    scheduleAutoOpen();                 // intro already seen this session / not shown
-  }
+  scheduleAutoOpen();
 }());
 
 /* ── SUBMIT: ROUTING ─────────────────────────────────────────
-   The Submit tab has no nav link — it is reachable only from the links
-   sent out (yoursite.com/?pitch or ?submit), which open the form directly. */
+   The Submit tab is in the main nav and shows the public pitch form. It also
+   opens directly from loginmag.net/submit (which redirects to /?pitch) and
+   from the ?final link sent later to selected contributors. */
 (function () {
   const panel   = document.getElementById("tab-submit");
   const content = document.getElementById("submitContent");
   if (!panel || !content) return;
 
-  /* Show the Submit panel and hide every other one. There is no nav link to
-     click, so this does the same work the tab router does. */
+  /* Show the Submit panel on page load, the same way clicking its nav link
+     would. */
   function openSubmitTab() {
-    document.querySelectorAll(".nav-link").forEach(l => {
-      l.classList.remove("active");
-      if (l.hasAttribute("aria-selected")) l.setAttribute("aria-selected", "false");
-    });
-    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
-    panel.classList.add("active");
+    const link = document.querySelector('.nav-link[data-tab="submit"]');
+    if (link) link.click();
+    else panel.classList.add("active");
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
-  /* Routing: ?pitch and ?submit both open this panel, and so do the
+  /* Routing: ?pitch and ?final both open this panel, and so do the
      ?pitched=1 / ?submitted=1 return trips FormSubmit sends people back on.
 
-     ?pitch  → the pitch form (the link sent to contributors now)
-     ?submit → the full submission form (sent later, to those selected)
+     /submit (→ ?pitch) → the public pitch form
+     ?final             → the full submission form (sent later, to those selected)
      Neither named → pitch, since that is the open stage. */
   const qs = new URLSearchParams(location.search);
-  const wantsSubmit = qs.has("submit") || qs.get("submitted") === "1";
+  const wantsSubmit = qs.has("final") || qs.get("submitted") === "1";
   content.setAttribute("data-mode", wantsSubmit ? "submit" : "pitch");
 
   if (wantsSubmit || qs.has("pitch") || qs.get("pitched") === "1") {
-    if (document.getElementById("intro-overlay")) {
-      document.addEventListener("login:introdone", openSubmitTab, { once: true });
-      setTimeout(openSubmitTab, 4000);   // failsafe if the intro event never fires
-    } else {
-      openSubmitTab();
-    }
+    // Deferred so the form scripts below read ?pitched / ?submitted before
+    // opening the tab rewrites the URL.
+    setTimeout(openSubmitTab, 0);
   }
 }());
 
@@ -3802,13 +3629,26 @@ if (heroBook && heroStage) {
   const btn    = document.getElementById("pitchSubmitBtn");
   const status = document.getElementById("pitchStatus");
 
+  const pitch   = document.getElementById("p-pitch");
+  const counter = document.getElementById("p-pitch-count");
+  const MAX_WORDS = 150;
+  function countWords() {
+    const n = (pitch.value.match(/\S+/g) || []).length;
+    counter.textContent = n + " / " + MAX_WORDS + " words";
+    counter.classList.toggle("over", n > MAX_WORDS);
+    pitch.setCustomValidity(n > MAX_WORDS
+      ? "Please keep your pitch to " + MAX_WORDS + " words (currently " + n + ")."
+      : "");
+  }
+  pitch?.addEventListener("input", countWords);
+
   if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(PITCH_EMAIL)) {
     form.action = "https://formsubmit.co/" + PITCH_EMAIL;
 
     const next = document.createElement("input");
     next.type  = "hidden";
     next.name  = "_next";
-    next.value = location.origin + location.pathname + "?pitched=1";
+    next.value = location.origin + "/?pitched=1";
     form.appendChild(next);
 
     form.addEventListener("submit", () => {
@@ -3828,7 +3668,7 @@ if (heroBook && heroStage) {
   if (new URLSearchParams(location.search).get("pitched") === "1") {
     if (status) {
       status.className = "form-status ok show";
-      status.textContent = "Thank you — your pitch was sent. We read every pitch, and if your work is selected for print we'll email you a submission link for your final files.";
+      status.textContent = "Got it — your pitch was sent. Pitches close October 5th, and we'll be in touch by email after that. A copy of this confirmation is on its way to your inbox.";
     }
     form.reset();
     history.replaceState(null, "", location.pathname);
@@ -3858,7 +3698,7 @@ if (heroBook && heroStage) {
     const next = document.createElement("input");
     next.type = "hidden";
     next.name = "_next";
-    next.value = location.origin + location.pathname + "?submitted=1";
+    next.value = location.origin + "/?submitted=1";
     form.appendChild(next);
 
     form.addEventListener("submit", () => {
@@ -3964,8 +3804,6 @@ if (heroBook && heroStage) {
 
   function show() {
     if (shown || stored) return;
-    // never sit on top of the intro or another open overlay
-    if (document.getElementById('intro-overlay')) return;
     shown = true;
     lastFocus = document.activeElement;
     popup.classList.add('open');
@@ -3984,7 +3822,7 @@ if (heroBook && heroStage) {
   function arm() {
     if (armed || stored) return;
     armed = true;
-    const timer = setTimeout(show, 6500);      // 5–8s after the intro is gone
+    const timer = setTimeout(show, 6500);      // 6.5s after landing
     function onLeave(e) {                       // …or exit-intent, whichever first
       if (!e.relatedTarget && e.clientY <= 0) {
         clearTimeout(timer);
@@ -3995,13 +3833,7 @@ if (heroBook && heroStage) {
     document.addEventListener('mouseout', onLeave);
   }
 
-  // Wait until the intro is finished before arming the triggers.
-  if (!document.getElementById('intro-overlay')) {
-    arm();                                      // intro already done / never shown
-  } else {
-    document.addEventListener('login:introdone', arm, { once: true });
-    setTimeout(arm, 65000);                     // failsafe if the event never fires
-  }
+  arm();
 
   closeBtn.addEventListener('click', () => close('dismissed'));
   noBtn.addEventListener('click', () => close('dismissed'));
