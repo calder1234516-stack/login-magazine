@@ -11,7 +11,7 @@
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#0000ff">
+<meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Archivo:ital,wght@0,300..800;1,300..500&display=swap" rel="stylesheet">
@@ -20,6 +20,7 @@
 
   :root {
     --blue: #0000ff;
+    --bg: #000000;                         /* page background */
     --white: #ffffff;
     --black: #000000;
     --white-60: rgba(255,255,255,0.80);   /* secondary text — AA ~5.6:1 on blue */
@@ -34,7 +35,7 @@
   html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
   body {
-    background: var(--blue);
+    background: var(--bg);
     color: var(--white);
     font-family: var(--font);
     cursor: url('cursor/cursor.png') 0 0, auto;
@@ -42,6 +43,17 @@
   }
 
   a { color: inherit; text-decoration: none; }
+
+  /* Behind all page content (z-index -1 paints under in-flow elements but
+     above the body background), and never catches a click. */
+  #bgLines {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
 
   /* keyboard focus — visible ring on every interactive / custom control.
      White on blue ≈ 8.6:1, and mouse users never see it (:focus-visible). */
@@ -557,7 +569,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(0,0,255,0.55) 0%, rgba(0,0,255,0) 55%);
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 55%);
   }
   .events-banner-cap {
     position: absolute;
@@ -631,7 +643,7 @@
   .gallery-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,255,0.55);
+    background: rgba(0,0,0,0.6);
     opacity: 0;
     transition: opacity 0.18s;
     display: flex;
@@ -1010,7 +1022,7 @@
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
   }
-  .form-select option { background: var(--blue); color: var(--white); }
+  .form-select option { background: var(--bg); color: var(--white); }
 
   /* ── PITCH vs FULL SUBMISSION ───────────────────────────────
      One panel serves both stages. /submit (and the Submit nav link) shows
@@ -1593,15 +1605,15 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 255, 0);
+    background: rgba(0, 0, 0, 0);
     transition: background 0.18s;
   }
-  .spread:hover::after { background: rgba(0, 0, 255, 0.22); }
+  .spread:hover::after { background: rgba(0, 0, 0, 0.3); }
 
   /* placeholder (issues without spread scans yet) */
   .spread--ph {
     aspect-ratio: 1.5;
-    background: var(--blue);
+    background: rgba(255,255,255,0.05);
     cursor: default;
     display: flex;
     flex-direction: column;
@@ -1850,7 +1862,7 @@
     position: relative;
     width: 100%;
     max-width: 420px;
-    background: var(--blue);
+    background: var(--bg);
     border: 1px solid var(--white-35);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
     padding: 36px 30px 28px;
@@ -2300,6 +2312,9 @@
 </style>
 </head>
 <body>
+
+<!-- Background circuit lines, drawn by the BACKGROUND CYBER LINES script -->
+<canvas id="bgLines" aria-hidden="true"></canvas>
 
 <header class="header">
   <div class="logo-block">
@@ -4150,6 +4165,389 @@ if (heroBook && heroStage) {
   window.addEventListener('scroll', stale, { passive: true });
   window.addEventListener('resize', stale);
 
+}());
+</script>
+
+<script>
+/* ── BACKGROUND CYBER LINES ──────────────────────────────────
+   Circuit traces that draw themselves in, hold, and fade, forever — the
+   continuous mode of cyber-lines.html (LOGIN/2.0), without its controls.
+   The canvas sits behind the page, and every frame the lines are erased
+   wherever there is copy, an image, a field or a button, so they never
+   run through anything someone needs to read. */
+(function () {
+  'use strict';
+  const cv = document.getElementById('bgLines');
+  if (!cv || !cv.getContext) return;
+  const ctx = cv.getContext('2d');
+
+  const PHONE = window.matchMedia('(max-width: 700px)').matches;
+  const STILL = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const P = {
+    speed: 220, density: PHONE ? 7 : 14, hold: 4, fade: 2.5,
+    complexity: 7, diagonal: 0.45, bus: 0.25, spiral: 0.12, shapes: 0.2,
+    width: 0.6,      // CSS px — hairline
+  };
+  // blue → green → red → white
+  const RGB = [[15, 158, 224], [25, 161, 95], [217, 51, 75], [255, 255, 255]];
+  const STOPS = [0, 0.36, 0.7, 1];
+  const PAD = 10;    // clear space kept around copy, px
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const randi = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
+  const chance = p => Math.random() < p;
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  function weighted(opts) {
+    let sum = 0;
+    for (const o of opts) sum += o[1];
+    let r = Math.random() * sum;
+    for (const o of opts) { if ((r -= o[1]) <= 0) return o[0]; }
+    return opts[opts.length - 1][0];
+  }
+  function colorAt(t) {
+    t = Math.min(1, Math.max(0, t));
+    let i = 0;
+    while (i < STOPS.length - 2 && t > STOPS[i + 1]) i++;
+    const u = (t - STOPS[i]) / (STOPS[i + 1] - STOPS[i]);
+    const a = RGB[i], b = RGB[i + 1];
+    return `rgb(${a[0] + (b[0] - a[0]) * u | 0},${a[1] + (b[1] - a[1]) * u | 0},${a[2] + (b[2] - a[2]) * u | 0})`;
+  }
+
+  // ---------- canvas & grid ----------
+  let W = 0, H = 0, DPR = 1, U = 20, COLS = 0, ROWS = 0, OX = 0, OY = 0;
+  function size() {
+    W = window.innerWidth; H = window.innerHeight;
+    DPR = Math.min(PHONE ? 1.5 : 2, window.devicePixelRatio || 1);
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    U = Math.max(10, Math.round(Math.min(W, H) / 56));
+    COLS = Math.floor(W / U); ROWS = Math.floor(H / U);
+    OX = (W - COLS * U) / 2; OY = (H - ROWS * U) / 2;
+  }
+  const toPx = p => [OX + p[0] * U, OY + p[1] * U];
+
+  const DX = [1, 1, 0, -1, -1, -1, 0, 1];
+  const DY = [0, 1, 1, 1, 0, -1, -1, -1];
+  function room(x, y, d) {
+    let r = Infinity;
+    if (DX[d] > 0) r = Math.min(r, COLS - x); else if (DX[d] < 0) r = Math.min(r, x);
+    if (DY[d] > 0) r = Math.min(r, ROWS - y); else if (DY[d] < 0) r = Math.min(r, y);
+    return r;
+  }
+  function chooseTurn(d, x, y, tight) {
+    const opts = [];
+    for (const t of [-1, 1, -2, 2, -3, 3]) {
+      const a = Math.abs(t);
+      const base = a === 1 ? 1 : a === 2 ? 1.1 : (tight ? 0.3 : 0);
+      if (!base) continue;
+      const nd = (d + t + 8) % 8;
+      let w = base * ((nd % 2) ? P.diagonal : 1 - P.diagonal) + 0.001;
+      if (room(x, y, nd) < 3) w *= 0.02;
+      opts.push([nd, w]);
+    }
+    return weighted(opts);
+  }
+
+  // ---------- path generators (grid coordinates) ----------
+  function genWander(o = {}) {
+    const tight = o.tight !== false, minLen = o.minLen || 2;
+    let x, y, d, fromEdge = false;
+    const randDir = () => chance(P.diagonal * 0.6) ? pick([1, 3, 5, 7]) : pick([0, 2, 4, 6]);
+    if (chance(0.55)) {
+      fromEdge = true;
+      const side = randi(0, 3);
+      if (side === 0)      { x = -1;       y = randi(2, ROWS - 2); d = 0; }
+      else if (side === 1) { x = COLS + 1; y = randi(2, ROWS - 2); d = 4; }
+      else if (side === 2) { y = -1;       x = randi(2, COLS - 2); d = 2; }
+      else                 { y = ROWS + 1; x = randi(2, COLS - 2); d = 6; }
+    } else {
+      x = randi(3, COLS - 3); y = randi(3, ROWS - 3); d = randDir();
+    }
+    const pts = [[x, y]];
+    const nSeg = o.segs || randi(Math.max(2, P.complexity - 2), P.complexity + 3);
+    const maxLen = Math.max(minLen + 2, Math.round(Math.min(COLS, ROWS) * 0.42));
+    for (let s = 0; s < nSeg; s++) {
+      let ok = false;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const nd = (s === 0 && attempt === 0 && fromEdge) ? d : chooseTurn(d, x, y, tight);
+        const r = room(x, y, nd);
+        if (r < minLen) continue;
+        const cap = (nd % 2) ? maxLen * 0.6 : maxLen;
+        let len = Math.round(minLen + Math.pow(Math.random(), 1.4) * Math.max(0, cap - minLen));
+        if (len >= r) {
+          if (fromEdge && s >= 2 && chance(0.5)) {   // run off the edge and end
+            len = r + 2; d = nd; x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
+            return { pts, exited: true, d };
+          }
+          len = r - randi(0, Math.min(2, r - minLen));
+        }
+        d = nd; x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
+        ok = true; break;
+      }
+      if (!ok) break;
+    }
+    return { pts, exited: false, d };
+  }
+  function appendMotif(pts, d) {
+    let [x, y] = pts[pts.length - 1];
+    const sg = chance(0.5) ? 1 : -1;
+    let seq;
+    if (chance(0.5)) {
+      const a = randi(2, 4), b = randi(2, 4);
+      seq = [[d, a], [d + 2 * sg, b], [d + 4 * sg, a], [d + 6 * sg, b]];
+    } else {
+      const s = randi(2, 4);
+      seq = [[d, (d % 2) ? s : 2 * s], [d + 3 * sg, s], [d + 5 * sg, s]];
+    }
+    for (const [dir, len] of seq) {
+      const dd = ((dir % 8) + 8) % 8;
+      x += DX[dd] * len; y += DY[dd] * len; pts.push([x, y]);
+    }
+  }
+  function placeInGrid(pts) {
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (const [x, y] of pts) { minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y); }
+    const lox = 1 - minx, hix = COLS - 1 - maxx, loy = 1 - miny, hiy = ROWS - 1 - maxy;
+    const ox = hix >= lox ? randi(lox, hix) : Math.round((lox + hix) / 2);
+    const oy = hiy >= loy ? randi(loy, hiy) : Math.round((loy + hiy) / 2);
+    return pts.map(([x, y]) => [x + ox, y + oy]);
+  }
+  function genSpiral() {
+    const kind = weighted([
+      [{ dirs: [1, 4, 7], mul: [1, 2, 1] }, 0.5],
+      [{ dirs: [0, 2, 4, 6], mul: [1, 1, 1, 1] }, 0.3],
+      [{ dirs: [1, 3, 5, 7], mul: [1, 1, 1, 1] }, 0.2],
+    ]);
+    let dirs = kind.dirs.slice();
+    if (chance(0.5)) dirs = dirs.map(d => (12 - d) % 8);
+    if (chance(0.2)) dirs = dirs.map(d => (8 - d) % 8);
+    const n = dirs.length, k = pick([1, 1, 1, 2]), r0 = randi(1, 2), laps = randi(3, 6);
+    let x = 0, y = 0, pts = [[0, 0]];
+    for (let i = 0; i < laps * n; i++) {
+      const d = dirs[i % n], len = kind.mul[i % n] * (r0 + i * k);
+      x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
+    }
+    pts = placeInGrid(pts);
+    if (chance(0.5)) pts.reverse();
+    return pts;
+  }
+  function genShape() {
+    const type = pick(['rect', 'rect', 'tri', 'tri', 'hour']);
+    let seq;
+    if (type === 'rect') {
+      const w = randi(2, 7), h = randi(2, 6);
+      seq = [[0, w], [2, h], [4, w], [6, h]];
+    } else if (type === 'tri') {
+      const d = pick([0, 2, 4, 6]), sg = chance(0.5) ? 1 : -1, s = randi(2, 6);
+      seq = [[d, 2 * s], [d + 3 * sg, s], [d + 5 * sg, s]];
+    } else {
+      const s = randi(2, 5), rot = pick([0, 2]);
+      seq = [[0 + rot, 2 * s], [3 + rot, 2 * s], [0 + rot, 2 * s], [5 + rot, 2 * s]];
+    }
+    let x = 0, y = 0;
+    const pts = [[0, 0]];
+    for (const [dir, len] of seq) {
+      const dd = ((dir % 8) + 8) % 8;
+      x += DX[dd] * len; y += DY[dd] * len; pts.push([x, y]);
+    }
+    return placeInGrid(pts);
+  }
+  function offsetPolyline(pts, dist) {
+    const out = [];
+    for (let i = 0; i < pts.length; i++) {
+      let n1 = null, n2 = null;
+      if (i > 0) {
+        const dx = pts[i][0] - pts[i - 1][0], dy = pts[i][1] - pts[i - 1][1], l = Math.hypot(dx, dy);
+        if (l > 1e-9) n1 = [-dy / l, dx / l];
+      }
+      if (i < pts.length - 1) {
+        const dx = pts[i + 1][0] - pts[i][0], dy = pts[i + 1][1] - pts[i][1], l = Math.hypot(dx, dy);
+        if (l > 1e-9) n2 = [-dy / l, dx / l];
+      }
+      n1 = n1 || n2; n2 = n2 || n1;
+      if (!n1) { out.push(pts[i].slice()); continue; }
+      const k = dist / Math.max(0.15, 1 + n1[0] * n2[0] + n1[1] * n2[1]);
+      out.push([pts[i][0] + (n1[0] + n2[0]) * k, pts[i][1] + (n1[1] + n2[1]) * k]);
+    }
+    return out;
+  }
+
+  // ---------- traces ----------
+  function makeTrace(pts, o) {
+    const p = [pts[0]];
+    for (let i = 1; i < pts.length; i++) {
+      const q = p[p.length - 1];
+      if (Math.hypot(pts[i][0] - q[0], pts[i][1] - q[1]) > 0.01) p.push(pts[i]);
+    }
+    if (p.length < 2) return null;
+    const cum = [0];
+    for (let i = 1; i < p.length; i++) cum.push(cum[i - 1] + Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]));
+    let L = cum[cum.length - 1];
+    if (o.trim) L *= o.trim;
+    return { pts: p, cum, L, head: 0, t0: o.t0, t1: o.t1, start: o.start, spd: o.spd, grad: [] };
+  }
+  function spawnEntity(start) {
+    const base = { t0: rand(0, 0.3), t1: rand(0.78, 1), spd: rand(0.85, 1.15), start };
+    const kind = weighted([['wander', 1], ['bus', P.bus], ['spiral', P.spiral], ['shape', P.shapes]]);
+    const out = [];
+    const add = (px, more) => { const t = makeTrace(px, Object.assign({}, base, more)); if (t) out.push(t); };
+    if (kind === 'wander') {
+      const w = genWander();
+      if (!w.exited && chance(P.shapes * 0.7)) appendMotif(w.pts, w.d);
+      add(w.pts.map(toPx));
+    } else if (kind === 'bus') {
+      const n = randi(2, 5), sp = U * pick([0.75, 1, 1, 1.5]);
+      const w = genWander({ tight: false, minLen: Math.ceil(n * sp / U) + 2, segs: randi(2, Math.max(3, P.complexity - 1)) });
+      const px = w.pts.map(toPx), side = chance(0.5) ? 1 : -1;
+      for (let i = 0; i < n; i++) {
+        add(offsetPolyline(px, side * i * sp), {
+          start: start + i * rand(0.04, 0.18),
+          trim: (!w.exited && i > 0 && chance(0.35)) ? rand(0.55, 0.95) : 0,
+        });
+      }
+    } else {
+      add((kind === 'spiral' ? genSpiral() : genShape()).map(toPx));
+    }
+    return out;
+  }
+
+  let groups = [], simT = 0, nextSpawn = 0;
+  function update(dt) {
+    const now = simT;
+    const live = groups.filter(g => g.state !== 'exit').length;
+    if (live < P.density && now >= nextSpawn) {
+      groups.push({ traces: spawnEntity(now + rand(0, 0.2)), state: 'grow', holdEnd: 0, exitStart: 0, alpha: 1 });
+      nextSpawn = now + rand(0.15, 0.6);
+    }
+    for (const g of groups) {
+      for (const t of g.traces) {
+        if (now >= t.start && t.head < t.L) t.head = Math.min(t.L, t.head + dt * P.speed * t.spd);
+      }
+      if (g.state === 'grow' && g.traces.every(t => t.head >= t.L)) {
+        g.state = 'hold'; g.holdEnd = now + P.hold * rand(0.5, 1.5);
+      }
+      if (g.state === 'hold' && now >= g.holdEnd) { g.state = 'exit'; g.exitStart = now; }
+      if (g.state === 'exit') {
+        g.alpha = Math.max(0, 1 - (now - g.exitStart) / P.fade);
+        g.done = g.alpha <= 0;
+      }
+    }
+    groups = groups.filter(g => !g.done);
+  }
+
+  // ---------- copy to keep clear ----------
+  /* Rectangles (viewport px) of every line of visible text plus images,
+     fields and buttons. Refreshed when the page scrolls, resizes or is
+     interacted with, and every half second for anything that animates. */
+  let holes = [], holesDirty = true, lastHoles = 0;
+  // media, form controls, and bordered boxes cleared whole rather than line by line
+  const SOLID = 'img,video,svg,picture,iframe,input,textarea,select,button,.book,.spread,' +
+                '.submit-meta,.stage-card,.submit-guidelines-inner,.form-status,.pitch-jump,.email-card';
+  const range = document.createRange();
+  function collectHoles() {
+    const out = [];
+    const push = r => {
+      if (r.width < 1 || r.height < 1 || r.bottom < -PAD || r.top > H + PAD || r.right < -PAD || r.left > W + PAD) return;
+      out.push([r.left - PAD, r.top - PAD, r.width + PAD * 2, r.height + PAD * 2]);
+    };
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => /\S/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
+    });
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const tag = n.parentElement && n.parentElement.tagName;
+      if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'OPTION') continue;
+      range.selectNodeContents(n);
+      for (const r of range.getClientRects()) push(r);
+    }
+    for (const el of document.querySelectorAll(SOLID)) push(el.getBoundingClientRect());
+    holes = out;
+  }
+  const markDirty = () => { holesDirty = true; };
+  ['scroll', 'resize', 'click', 'input', 'keyup', 'touchend', 'transitionend', 'animationend']
+    .forEach(e => window.addEventListener(e, markDirty, { passive: true, capture: true }));
+
+  // ---------- rendering ----------
+  function segGrad(t, i) {
+    if (t.grad[i]) return t.grad[i];
+    const [x0, y0] = t.pts[i], [x1, y1] = t.pts[i + 1];
+    const full = t.cum[t.cum.length - 1];
+    const ta = t.t0 + (t.t1 - t.t0) * t.cum[i] / full;
+    const tb = t.t0 + (t.t1 - t.t0) * t.cum[i + 1] / full;
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    const n = 2 + Math.ceil(Math.abs(tb - ta) * 12);
+    for (let k = 0; k < n; k++) { const u = k / (n - 1); g.addColorStop(u, colorAt(ta + (tb - ta) * u)); }
+    return (t.grad[i] = g);
+  }
+  function drawRange(t, b) {
+    for (let i = 0; i < t.pts.length - 1; i++) {
+      const s0 = t.cum[i], s1 = t.cum[i + 1];
+      if (s0 >= b) break;
+      const ub = Math.min(1, (b - s0) / (s1 - s0));
+      const [x0, y0] = t.pts[i], [x1, y1] = t.pts[i + 1];
+      ctx.strokeStyle = segGrad(t, i);
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x0 + (x1 - x0) * ub, y0 + (y1 - y0) * ub);
+      ctx.stroke();
+    }
+  }
+  function render() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.lineCap = 'round';
+    ctx.lineWidth = P.width;
+    for (const g of groups) {
+      ctx.globalAlpha = g.alpha;
+      for (const t of g.traces) if (t.head > 0) drawRange(t, t.head);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'destination-out';
+    for (const h of holes) ctx.fillRect(h[0], h[1], h[2], h[3]);
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  let last = performance.now();
+  function frame(ts) {
+    const dt = Math.min(0.1, Math.max(0, (ts - last) / 1000));
+    last = ts;
+    if (holesDirty || ts - lastHoles > 500) { collectHoles(); holesDirty = false; lastHoles = ts; }
+    simT += dt; update(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  size();
+  let lastW = W;
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      size();
+      // phone browsers resize on every scroll as the address bar hides; only
+      // a real width change needs a fresh set of lines
+      if (W !== lastW && !STILL) { groups = []; nextSpawn = simT; lastW = W; }
+      holesDirty = true;
+    }, 150);
+  });
+
+  if (STILL) {
+    /* Reduced motion: one fully drawn, unmoving set of lines, redrawn only
+       when the copy it has to avoid moves. */
+    for (let i = 0; i < P.density; i++) {
+      const traces = spawnEntity(0);
+      traces.forEach(t => { t.head = t.L; });
+      groups.push({ traces, state: 'still', alpha: 1 });
+    }
+    const still = () => {
+      if (holesDirty) { collectHoles(); holesDirty = false; render(); }
+      requestAnimationFrame(still);
+    };
+    requestAnimationFrame(still);
+  } else {
+    requestAnimationFrame(frame);
+  }
 }());
 </script>
 </body>
