@@ -4170,8 +4170,11 @@ if (heroBook && heroStage) {
 
 <script>
 /* ── BACKGROUND CYBER LINES ──────────────────────────────────
-   Circuit traces that draw themselves in, hold, and fade, forever — the
-   continuous mode of cyber-lines.html (LOGIN/2.0), without its controls.
+   Circuit-board traces that draw themselves in, hold, and fade, forever —
+   grown from cyber-lines.html (LOGIN/2.0). Runs are horizontal/vertical
+   with 45° chamfered corners, traces end in via pads, buses run in
+   parallel, and chips put out rows of pins. Neon blue → cyan → green →
+   white, with a soft glow.
    The canvas sits behind the page, and every frame the lines are erased
    wherever there is copy, an image, a field or a button, so they never
    run through anything someone needs to read. */
@@ -4184,13 +4187,16 @@ if (heroBook && heroStage) {
   const PHONE = window.matchMedia('(max-width: 700px)').matches;
   const STILL = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const P = {
-    speed: 220, density: PHONE ? 7 : 14, hold: 4, fade: 2.5,
-    complexity: 7, diagonal: 0.45, bus: 0.25, spiral: 0.12, shapes: 0.2,
-    width: 0.6,      // CSS px — hairline
+    speed: 240, density: PHONE ? 6 : 12, hold: 4, fade: 2.5,
+    width: 0.6,                    // CSS px — hairline core
+    // glow: wider, fainter strokes under the core
+    glow: PHONE ? [[2.6, 0.2]] : [[5, 0.07], [2.4, 0.2]],
+    run45: 0.18,                   // chance a corner becomes a 45° run instead
+    bus: 0.7, chip: 0.35,          // entity weights (single trace = 1)
   };
-  // blue → green → red → white
-  const RGB = [[15, 158, 224], [25, 161, 95], [217, 51, 75], [255, 255, 255]];
-  const STOPS = [0, 0.36, 0.7, 1];
+  // neon blue → cyan → neon green → white
+  const RGB = [[31, 81, 255], [0, 229, 255], [57, 255, 20], [255, 255, 255]];
+  const STOPS = [0, 0.38, 0.72, 1];
   const PAD = 10;    // clear space kept around copy, px
 
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -4225,132 +4231,70 @@ if (heroBook && heroStage) {
   }
   const toPx = p => [OX + p[0] * U, OY + p[1] * U];
 
+  // 8 directions, 45° apart; even = horizontal/vertical, odd = diagonal
   const DX = [1, 1, 0, -1, -1, -1, 0, 1];
   const DY = [0, 1, 1, 1, 0, -1, -1, -1];
   function room(x, y, d) {
     let r = Infinity;
-    if (DX[d] > 0) r = Math.min(r, COLS - x); else if (DX[d] < 0) r = Math.min(r, x);
-    if (DY[d] > 0) r = Math.min(r, ROWS - y); else if (DY[d] < 0) r = Math.min(r, y);
+    if (DX[d] > 0) r = Math.min(r, COLS - 1 - x); else if (DX[d] < 0) r = Math.min(r, x - 1);
+    if (DY[d] > 0) r = Math.min(r, ROWS - 1 - y); else if (DY[d] < 0) r = Math.min(r, y - 1);
     return r;
   }
-  function chooseTurn(d, x, y, tight) {
-    const opts = [];
-    for (const t of [-1, 1, -2, 2, -3, 3]) {
-      const a = Math.abs(t);
-      const base = a === 1 ? 1 : a === 2 ? 1.1 : (tight ? 0.3 : 0);
-      if (!base) continue;
-      const nd = (d + t + 8) % 8;
-      let w = base * ((nd % 2) ? P.diagonal : 1 - P.diagonal) + 0.001;
-      if (room(x, y, nd) < 3) w *= 0.02;
-      opts.push([nd, w]);
+
+  /* A PCB-style route from (x, y) heading d. Straight runs; each corner is
+     a 90° turn cut by a short 45° chamfer, or now and then a 45° run. May
+     run off the canvas edge (exited) or stop on the board (ends in a via). */
+  function route(x, y, d, o = {}) {
+    const pts = [[x, y]];
+    const segs = o.segs || randi(3, 7);
+    const maxRun = Math.max(4, Math.round(Math.max(COLS, ROWS) * 0.35));
+    for (let s = 0; s < segs; s++) {
+      const r = room(x, y, d);
+      const diag = d % 2 === 1;
+      // last run of an edge-launched or outward trace may leave the board
+      if (o.canExit && s >= 2 && (s === segs - 1 || chance(0.2)) && r < maxRun) {
+        const len = r + 3;
+        x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
+        return { pts, exited: true };
+      }
+      if (r < 2) break;
+      const len = diag ? randi(1, Math.min(4, r)) : randi(Math.min(2, r), Math.min(r - 1 || 1, maxRun));
+      x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
+      if (s === segs - 1) break;
+
+      // corner
+      if (diag) {                              // diagonal run → back to straight
+        const nd = (d + pick([-1, 1]) + 8) % 8;
+        if (room(x, y, nd) < 3) break;
+        d = nd; continue;
+      }
+      if (chance(P.run45)) {                   // straight → 45° run
+        const nd = (d + pick([-1, 1]) + 8) % 8;
+        if (room(x, y, nd) >= 2) { d = nd; continue; }
+      }
+      let turn = pick([-2, 2]);
+      if (room(x, y, (d + turn + 8) % 8) < 4) turn = -turn;
+      const nd = (d + turn + 8) % 8, cd = (d + turn / 2 + 8) % 8;
+      if (room(x, y, nd) < 4) break;
+      const c = chance(0.7) ? 1 : 2;           // chamfer
+      x += DX[cd] * c; y += DY[cd] * c; pts.push([x, y]);
+      d = nd;
     }
-    return weighted(opts);
+    return { pts, exited: false };
   }
 
-  // ---------- path generators (grid coordinates) ----------
-  function genWander(o = {}) {
-    const tight = o.tight !== false, minLen = o.minLen || 2;
-    let x, y, d, fromEdge = false;
-    const randDir = () => chance(P.diagonal * 0.6) ? pick([1, 3, 5, 7]) : pick([0, 2, 4, 6]);
-    if (chance(0.55)) {
-      fromEdge = true;
-      const side = randi(0, 3);
-      if (side === 0)      { x = -1;       y = randi(2, ROWS - 2); d = 0; }
-      else if (side === 1) { x = COLS + 1; y = randi(2, ROWS - 2); d = 4; }
-      else if (side === 2) { y = -1;       x = randi(2, COLS - 2); d = 2; }
-      else                 { y = ROWS + 1; x = randi(2, COLS - 2); d = 6; }
-    } else {
-      x = randi(3, COLS - 3); y = randi(3, ROWS - 3); d = randDir();
-    }
-    const pts = [[x, y]];
-    const nSeg = o.segs || randi(Math.max(2, P.complexity - 2), P.complexity + 3);
-    const maxLen = Math.max(minLen + 2, Math.round(Math.min(COLS, ROWS) * 0.42));
-    for (let s = 0; s < nSeg; s++) {
-      let ok = false;
-      for (let attempt = 0; attempt < 8; attempt++) {
-        const nd = (s === 0 && attempt === 0 && fromEdge) ? d : chooseTurn(d, x, y, tight);
-        const r = room(x, y, nd);
-        if (r < minLen) continue;
-        const cap = (nd % 2) ? maxLen * 0.6 : maxLen;
-        let len = Math.round(minLen + Math.pow(Math.random(), 1.4) * Math.max(0, cap - minLen));
-        if (len >= r) {
-          if (fromEdge && s >= 2 && chance(0.5)) {   // run off the edge and end
-            len = r + 2; d = nd; x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
-            return { pts, exited: true, d };
-          }
-          len = r - randi(0, Math.min(2, r - minLen));
-        }
-        d = nd; x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
-        ok = true; break;
-      }
-      if (!ok) break;
-    }
-    return { pts, exited: false, d };
+  function edgeStart() {
+    const side = randi(0, 3);
+    if (side === 0) return [-2, randi(3, ROWS - 3), 0];
+    if (side === 1) return [COLS + 2, randi(3, ROWS - 3), 4];
+    if (side === 2) return [randi(3, COLS - 3), -2, 2];
+    return [randi(3, COLS - 3), ROWS + 2, 6];
   }
-  function appendMotif(pts, d) {
-    let [x, y] = pts[pts.length - 1];
-    const sg = chance(0.5) ? 1 : -1;
-    let seq;
-    if (chance(0.5)) {
-      const a = randi(2, 4), b = randi(2, 4);
-      seq = [[d, a], [d + 2 * sg, b], [d + 4 * sg, a], [d + 6 * sg, b]];
-    } else {
-      const s = randi(2, 4);
-      seq = [[d, (d % 2) ? s : 2 * s], [d + 3 * sg, s], [d + 5 * sg, s]];
-    }
-    for (const [dir, len] of seq) {
-      const dd = ((dir % 8) + 8) % 8;
-      x += DX[dd] * len; y += DY[dd] * len; pts.push([x, y]);
-    }
+  function interiorStart() {
+    return [randi(3, COLS - 3), randi(3, ROWS - 3), pick([0, 2, 4, 6])];
   }
-  function placeInGrid(pts) {
-    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
-    for (const [x, y] of pts) { minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y); }
-    const lox = 1 - minx, hix = COLS - 1 - maxx, loy = 1 - miny, hiy = ROWS - 1 - maxy;
-    const ox = hix >= lox ? randi(lox, hix) : Math.round((lox + hix) / 2);
-    const oy = hiy >= loy ? randi(loy, hiy) : Math.round((loy + hiy) / 2);
-    return pts.map(([x, y]) => [x + ox, y + oy]);
-  }
-  function genSpiral() {
-    const kind = weighted([
-      [{ dirs: [1, 4, 7], mul: [1, 2, 1] }, 0.5],
-      [{ dirs: [0, 2, 4, 6], mul: [1, 1, 1, 1] }, 0.3],
-      [{ dirs: [1, 3, 5, 7], mul: [1, 1, 1, 1] }, 0.2],
-    ]);
-    let dirs = kind.dirs.slice();
-    if (chance(0.5)) dirs = dirs.map(d => (12 - d) % 8);
-    if (chance(0.2)) dirs = dirs.map(d => (8 - d) % 8);
-    const n = dirs.length, k = pick([1, 1, 1, 2]), r0 = randi(1, 2), laps = randi(3, 6);
-    let x = 0, y = 0, pts = [[0, 0]];
-    for (let i = 0; i < laps * n; i++) {
-      const d = dirs[i % n], len = kind.mul[i % n] * (r0 + i * k);
-      x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
-    }
-    pts = placeInGrid(pts);
-    if (chance(0.5)) pts.reverse();
-    return pts;
-  }
-  function genShape() {
-    const type = pick(['rect', 'rect', 'tri', 'tri', 'hour']);
-    let seq;
-    if (type === 'rect') {
-      const w = randi(2, 7), h = randi(2, 6);
-      seq = [[0, w], [2, h], [4, w], [6, h]];
-    } else if (type === 'tri') {
-      const d = pick([0, 2, 4, 6]), sg = chance(0.5) ? 1 : -1, s = randi(2, 6);
-      seq = [[d, 2 * s], [d + 3 * sg, s], [d + 5 * sg, s]];
-    } else {
-      const s = randi(2, 5), rot = pick([0, 2]);
-      seq = [[0 + rot, 2 * s], [3 + rot, 2 * s], [0 + rot, 2 * s], [5 + rot, 2 * s]];
-    }
-    let x = 0, y = 0;
-    const pts = [[0, 0]];
-    for (const [dir, len] of seq) {
-      const dd = ((dir % 8) + 8) % 8;
-      x += DX[dd] * len; y += DY[dd] * len; pts.push([x, y]);
-    }
-    return placeInGrid(pts);
-  }
+
+  // parallel offset of a pixel polyline (mitered corners)
   function offsetPolyline(pts, dist) {
     const out = [];
     for (let i = 0; i < pts.length; i++) {
@@ -4383,29 +4327,84 @@ if (heroBook && heroStage) {
     for (let i = 1; i < p.length; i++) cum.push(cum[i - 1] + Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]));
     let L = cum[cum.length - 1];
     if (o.trim) L *= o.trim;
-    return { pts: p, cum, L, head: 0, t0: o.t0, t1: o.t1, start: o.start, spd: o.spd, grad: [] };
+    const t = { pts: p, cum, L, head: 0, t0: o.t0, t1: o.t1, start: o.start, spd: o.spd, grad: [],
+                startVia: !!o.startVia, endVia: !!o.endVia };
+    t.endPt = pointAt(t, L);
+    return t;
   }
+  function pointAt(t, s) {
+    for (let i = 0; i < t.pts.length - 1; i++) {
+      if (t.cum[i + 1] >= s) {
+        const u = (s - t.cum[i]) / (t.cum[i + 1] - t.cum[i] || 1);
+        const [x0, y0] = t.pts[i], [x1, y1] = t.pts[i + 1];
+        return [x0 + (x1 - x0) * u, y0 + (y1 - y0) * u];
+      }
+    }
+    return t.pts[t.pts.length - 1];
+  }
+
   function spawnEntity(start) {
-    const base = { t0: rand(0, 0.3), t1: rand(0.78, 1), spd: rand(0.85, 1.15), start };
-    const kind = weighted([['wander', 1], ['bus', P.bus], ['spiral', P.spiral], ['shape', P.shapes]]);
+    const base = { t0: rand(0, 0.3), t1: rand(0.75, 1), spd: rand(0.85, 1.15), start };
+    const kind = weighted([['trace', 1], ['bus', P.bus], ['chip', P.chip]]);
     const out = [];
     const add = (px, more) => { const t = makeTrace(px, Object.assign({}, base, more)); if (t) out.push(t); };
-    if (kind === 'wander') {
-      const w = genWander();
-      if (!w.exited && chance(P.shapes * 0.7)) appendMotif(w.pts, w.d);
-      add(w.pts.map(toPx));
-    } else if (kind === 'bus') {
-      const n = randi(2, 5), sp = U * pick([0.75, 1, 1, 1.5]);
-      const w = genWander({ tight: false, minLen: Math.ceil(n * sp / U) + 2, segs: randi(2, Math.max(3, P.complexity - 1)) });
-      const px = w.pts.map(toPx), side = chance(0.5) ? 1 : -1;
-      for (let i = 0; i < n; i++) {
-        add(offsetPolyline(px, side * i * sp), {
-          start: start + i * rand(0.04, 0.18),
-          trim: (!w.exited && i > 0 && chance(0.35)) ? rand(0.55, 0.95) : 0,
+
+    if (kind === 'trace' || kind === 'bus') {
+      const fromEdge = chance(0.6);
+      const [x, y, d] = fromEdge ? edgeStart() : interiorStart();
+      const w = route(x, y, d, { canExit: fromEdge ? chance(0.5) : true });
+      const px = w.pts.map(toPx);
+      if (kind === 'trace') {
+        add(px, { startVia: !fromEdge, endVia: !w.exited });
+      } else {
+        const n = randi(2, 6), sp = U * pick([0.5, 0.6, 0.75, 1]), side = chance(0.5) ? 1 : -1;
+        for (let i = 0; i < n; i++) {
+          const trim = (!w.exited && i > 0 && chance(0.4)) ? rand(0.6, 0.95) : 0;
+          add(offsetPolyline(px, side * i * sp), {
+            start: start + i * rand(0.03, 0.12), trim,
+            startVia: !fromEdge, endVia: !w.exited || trim > 0,
+          });
+        }
+      }
+      return out;
+    }
+
+    // chip: an outline, rows of pins, and buses routed out from the pins
+    const cw = randi(4, 9), ch = randi(3, 6);
+    if (COLS < cw + 12 || ROWS < ch + 12) return out;
+    const x0 = randi(6, COLS - cw - 6), y0 = randi(6, ROWS - ch - 6);
+    add([[x0, y0], [x0 + cw, y0], [x0 + cw, y0 + ch], [x0, y0 + ch], [x0, y0]].map(toPx), {});
+    // sides as [outward direction, pin positions along the edge, along-edge step]
+    const sides = [
+      [6, i => [x0 + i, y0], cw, [1, 0]],        // top, pins point up
+      [2, i => [x0 + i, y0 + ch], cw, [1, 0]],   // bottom
+      [4, i => [x0, y0 + i], ch, [0, 1]],        // left
+      [0, i => [x0 + cw, y0 + i], ch, [0, 1]],   // right
+    ];
+    const pinStart = start + 0.35;
+    for (const [od, at, len, along] of sides) {
+      if (!chance(len === cw ? 0.8 : 0.5)) continue;
+      // pin stubs
+      for (let i = 1; i < len; i++) {
+        const [px0, py0] = at(i);
+        add([[px0, py0], [px0 + DX[od] * 0.6, py0 + DY[od] * 0.6]].map(toPx),
+            { start: pinStart + i * 0.02 });
+      }
+      // a bus from k neighbouring pins
+      if (!chance(0.75) || len < 3) continue;
+      const k = randi(2, Math.min(5, len - 1)), i0 = randi(1, len - k);
+      const [sx, sy] = at(i0);
+      const w = route(sx, sy, od, { canExit: chance(0.6), segs: randi(2, 5) });
+      const px = w.pts.map(toPx);
+      // offset toward the next pins: left normal of the outward direction
+      const nx = -DY[od], ny = DX[od];
+      const sign = (along[0] * nx + along[1] * ny) >= 0 ? 1 : -1;
+      for (let j = 0; j < k; j++) {
+        const trim = (!w.exited && j > 0 && chance(0.3)) ? rand(0.6, 0.95) : 0;
+        add(offsetPolyline(px, sign * j * U), {
+          start: pinStart + 0.3 + j * rand(0.03, 0.1), trim, endVia: !w.exited || trim > 0,
         });
       }
-    } else {
-      add((kind === 'spiral' ? genSpiral() : genShape()).map(toPx));
     }
     return out;
   }
@@ -4415,8 +4414,9 @@ if (heroBook && heroStage) {
     const now = simT;
     const live = groups.filter(g => g.state !== 'exit').length;
     if (live < P.density && now >= nextSpawn) {
-      groups.push({ traces: spawnEntity(now + rand(0, 0.2)), state: 'grow', holdEnd: 0, exitStart: 0, alpha: 1 });
-      nextSpawn = now + rand(0.15, 0.6);
+      const traces = spawnEntity(now + rand(0, 0.2));
+      if (traces.length) groups.push({ traces, state: 'grow', holdEnd: 0, exitStart: 0, alpha: 1 });
+      nextSpawn = now + rand(0.2, 0.7);
     }
     for (const g of groups) {
       for (const t of g.traces) {
@@ -4474,7 +4474,7 @@ if (heroBook && heroStage) {
     const tb = t.t0 + (t.t1 - t.t0) * t.cum[i + 1] / full;
     const g = ctx.createLinearGradient(x0, y0, x1, y1);
     const n = 2 + Math.ceil(Math.abs(tb - ta) * 12);
-    for (let k = 0; k < n; k++) { const u = k / (n - 1); g.addColorStop(u, colorAt(ta + (tb - ta) * u)); }
+    for (let k = 0; k < n; k++) { const u = k / (n - 1); g.addColorStop(u, colorAt(t.t0 === t.t1 ? ta : ta + (tb - ta) * u)); }
     return (t.grad[i] = g);
   }
   function drawRange(t, b) {
@@ -4490,6 +4490,24 @@ if (heroBook && heroStage) {
       ctx.stroke();
     }
   }
+  function drawVia(x, y, color) {
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(2, U * 0.22), 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  function drawGroups(width, alphaMul) {
+    ctx.lineWidth = width;
+    for (const g of groups) {
+      ctx.globalAlpha = g.alpha * alphaMul;
+      for (const t of g.traces) {
+        if (t.head <= 0) continue;
+        drawRange(t, t.head);
+        if (t.startVia) drawVia(t.pts[0][0], t.pts[0][1], colorAt(t.t0));
+        if (t.endVia && t.head >= t.L) drawVia(t.endPt[0], t.endPt[1], colorAt(t.t1));
+      }
+    }
+  }
   function render() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalCompositeOperation = 'source-over';
@@ -4497,11 +4515,9 @@ if (heroBook && heroStage) {
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.lineCap = 'round';
-    ctx.lineWidth = P.width;
-    for (const g of groups) {
-      ctx.globalAlpha = g.alpha;
-      for (const t of g.traces) if (t.head > 0) drawRange(t, t.head);
-    }
+    ctx.lineJoin = 'round';
+    for (const [w, a] of P.glow) drawGroups(w, a);   // soft glow under…
+    drawGroups(P.width, 1);                          // …the hairline core
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'destination-out';
     for (const h of holes) ctx.fillRect(h[0], h[1], h[2], h[3]);
@@ -4538,7 +4554,7 @@ if (heroBook && heroStage) {
     for (let i = 0; i < P.density; i++) {
       const traces = spawnEntity(0);
       traces.forEach(t => { t.head = t.L; });
-      groups.push({ traces, state: 'still', alpha: 1 });
+      if (traces.length) groups.push({ traces, state: 'still', alpha: 1 });
     }
     const still = () => {
       if (holesDirty) { collectHoles(); holesDirty = false; render(); }
