@@ -4188,14 +4188,14 @@ if (heroBook && heroStage) {
   const STILL = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const P = {
     speed: 240, density: PHONE ? 6 : 12, hold: 4, fade: 2.5,
-    width: 0.6,                    // CSS px — hairline core
+    width: 0.8,                    // CSS px — hairline core
     // glow: wider, fainter strokes under the core
-    glow: PHONE ? [[2.6, 0.2]] : [[5, 0.07], [2.4, 0.2]],
+    glow: PHONE ? [[4, 0.12], [2.4, 0.26]] : [[8, 0.09], [3.2, 0.26]],
     run45: 0.18,                   // chance a corner becomes a 45° run instead
     bus: 0.7, chip: 0.35,          // entity weights (single trace = 1)
   };
-  // neon blue → cyan → neon green → white
-  const RGB = [[31, 81, 255], [0, 229, 255], [57, 255, 20], [255, 255, 255]];
+  // neon blue → cyan → neon green → white, lifted toward white so they read light
+  const RGB = [[110, 150, 255], [120, 240, 255], [150, 255, 130], [255, 255, 255]];
   const STOPS = [0, 0.38, 0.72, 1];
   const PAD = 10;    // clear space kept around copy, px
 
@@ -4225,7 +4225,7 @@ if (heroBook && heroStage) {
     W = window.innerWidth; H = window.innerHeight;
     DPR = Math.min(PHONE ? 1.5 : 2, window.devicePixelRatio || 1);
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-    U = Math.max(10, Math.round(Math.min(W, H) / 56));
+    U = Math.max(14, Math.round(Math.min(W, H) / 34));
     COLS = Math.floor(W / U); ROWS = Math.floor(H / U);
     OX = (W - COLS * U) / 2; OY = (H - ROWS * U) / 2;
   }
