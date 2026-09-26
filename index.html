@@ -4188,9 +4188,9 @@ if (heroBook && heroStage) {
   const STILL = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const P = {
     speed: 240, density: PHONE ? 6 : 12, hold: 4, fade: 2.5,
-    width: 0.8,                    // CSS px — hairline core
+    width: 0.5,                    // CSS px — hairline core
     // glow: wider, fainter strokes under the core
-    glow: PHONE ? [[4, 0.12], [2.4, 0.26]] : [[8, 0.09], [3.2, 0.26]],
+    glow: PHONE ? [[3.2, 0.1], [1.8, 0.22]] : [[6, 0.08], [2.4, 0.2]],
     run45: 0.18,                   // chance a corner becomes a 45° run instead
     bus: 0.7, chip: 0.35,          // entity weights (single trace = 1)
   };
@@ -4225,7 +4225,7 @@ if (heroBook && heroStage) {
     W = window.innerWidth; H = window.innerHeight;
     DPR = Math.min(PHONE ? 1.5 : 2, window.devicePixelRatio || 1);
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-    U = Math.max(14, Math.round(Math.min(W, H) / 34));
+    U = Math.max(16, Math.round(Math.min(W, H) / 24));
     COLS = Math.floor(W / U); ROWS = Math.floor(H / U);
     OX = (W - COLS * U) / 2; OY = (H - ROWS * U) / 2;
   }
