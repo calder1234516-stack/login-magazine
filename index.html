@@ -11,7 +11,7 @@
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#fafafa">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Archivo:ital,wght@0,300..800;1,300..500&display=swap" rel="stylesheet">
@@ -19,15 +19,16 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --blue: #0000ff;
-    --bg: #000000;                         /* page background */
-    --white: #ffffff;
-    --black: #000000;
-    --white-60: rgba(255,255,255,0.80);   /* secondary text — AA ~5.6:1 on blue */
-    --text-muted: rgba(255,255,255,0.74);  /* muted text — AA ~4.85:1 on blue */
-    --white-35: rgba(255,255,255,0.35);    /* thin borders / dividers only */
-    --white-15: rgba(255,255,255,0.15);
-    --white-08: rgba(255,255,255,0.08);
+    --blue: #0000ff;                       /* the placeholder cover graphic */
+    --glow: 99,159,230;                    /* #639fe6 — the blue in the page gradient */
+    --accent: #dbe8fa;                     /* pale blue-white — text on solid --fg buttons, ~13:1 on navy */
+    --bg: #fafafa;                         /* page background, under the blue glow */
+    --fg: #142448;                         /* deep navy — text, rules, buttons */
+    --fg-60: rgba(20,36,72,0.80);          /* secondary text */
+    --text-muted: rgba(20,36,72,0.74);     /* muted text — AA ~5:1 even on the bluest part of the gradient */
+    --fg-35: rgba(20,36,72,0.35);          /* thin borders / dividers only */
+    --fg-15: rgba(20,36,72,0.15);
+    --fg-08: rgba(20,36,72,0.08);
     --font: 'Bahnschrift', 'Archivo', sans-serif;   /* Bahnschrift is a Windows system font; other devices use Archivo */
     --display: 'Space Grotesk', 'Archivo', sans-serif;
   }
@@ -36,29 +37,78 @@
 
   body {
     background: var(--bg);
-    color: var(--white);
+    color: var(--fg);
     font-family: var(--font);
     cursor: url('cursor/cursor.png') 0 0, auto;
     min-height: 100vh;
   }
 
-  a { color: inherit; text-decoration: none; }
-
-  /* Behind all page content (z-index -1 paints under in-flow elements but
-     above the body background), and never catches a click. */
-  #bgLines {
+  /* The page gradient: off-white washed with the blue and a pale lavender,
+     drifting slowly. Two oversized layers, each several soft, low-opacity
+     patches that overlap, so no single spot reads as a blob; they move on
+     different, long loops so the mix keeps changing. Fixed to the window
+     (fixed pseudo-elements, since iOS ignores background-attachment: fixed)
+     and moved with transform only, so the drift stays cheap. */
+  body::before,
+  body::after {
+    content: '';
     position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    inset: -50%;
     z-index: -1;
     pointer-events: none;
+    will-change: transform;
+  }
+  body::before {
+    background:
+      radial-gradient(ellipse 28% 22% at 38% 36%, rgba(var(--glow), 0.45), rgba(var(--glow), 0) 100%),
+      radial-gradient(ellipse 34% 26% at 62% 44%, rgba(var(--glow), 0.32), rgba(var(--glow), 0) 100%),
+      radial-gradient(ellipse 30% 30% at 46% 62%, rgba(214, 222, 245, 0.85), rgba(214, 222, 245, 0) 100%),
+      radial-gradient(ellipse 26% 20% at 70% 30%, rgba(var(--glow), 0.30), rgba(var(--glow), 0) 100%);
+    animation: bg-drift-a 48s ease-in-out infinite alternate;
+  }
+  body::after {
+    background:
+      radial-gradient(ellipse 32% 24% at 56% 34%, rgba(var(--glow), 0.26), rgba(var(--glow), 0) 100%),
+      radial-gradient(ellipse 24% 30% at 34% 56%, rgba(var(--glow), 0.22), rgba(var(--glow), 0) 100%),
+      radial-gradient(ellipse 30% 22% at 64% 64%, rgba(226, 231, 248, 0.80), rgba(226, 231, 248, 0) 100%);
+    animation: bg-drift-b 67s ease-in-out infinite alternate;
+  }
+  @keyframes bg-drift-a {
+    0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
+    33%  { transform: translate(6%, -4%) rotate(8deg) scale(1.06); }
+    66%  { transform: translate(-5%, 5%) rotate(-6deg) scale(0.96); }
+    100% { transform: translate(4%, 6%) rotate(12deg) scale(1.04); }
+  }
+  @keyframes bg-drift-b {
+    0%   { transform: translate(0, 0) rotate(0deg) scale(1.04); }
+    50%  { transform: translate(-7%, -5%) rotate(-10deg) scale(0.95); }
+    100% { transform: translate(5%, -3%) rotate(6deg) scale(1.08); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body::before, body::after { animation: none; }
   }
 
+  /* Things that sit on a photo or a dark/blue backdrop keep white text. */
+  .events-banner,
+  .gallery-overlay,
+  .lightbox,
+  .spread-lb,
+  .media-arrow,
+  .media-dots {
+    --fg: #ffffff;
+    --fg-60: rgba(255,255,255,0.80);
+    --text-muted: rgba(255,255,255,0.74);
+    --fg-35: rgba(255,255,255,0.35);
+    --fg-15: rgba(255,255,255,0.15);
+    --fg-08: rgba(255,255,255,0.08);
+  }
+
+  a { color: inherit; text-decoration: none; }
+
   /* keyboard focus — visible ring on every interactive / custom control.
-     White on blue ≈ 8.6:1, and mouse users never see it (:focus-visible). */
+     Dark on the light page (white on the photo/blue overlays), and mouse users never see it (:focus-visible). */
   :focus-visible {
-    outline: 2px solid var(--white);
+    outline: 2px solid var(--fg);
     outline-offset: 3px;
   }
   :focus:not(:focus-visible) { outline: none; }
@@ -69,7 +119,7 @@
     grid-template-columns: 1fr auto;
     align-items: end;
     padding: 16px 16px 14px;
-    border-bottom: 1px solid var(--white-35);
+    border-bottom: 1px solid var(--fg-35);
     gap: 24px;
   }
 
@@ -97,7 +147,7 @@
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.18em;
-    color: var(--white-60);
+    color: var(--fg-60);
     margin-top: 6px;
     text-transform: uppercase;
   }
@@ -106,7 +156,7 @@
     text-align: right;
     font-size: 12px;
     font-weight: 400;
-    color: var(--white-60);
+    color: var(--fg-60);
     letter-spacing: 0.06em;
     line-height: 1.8;
   }
@@ -114,7 +164,7 @@
   .header-meta .live-time {
     font-size: 13px;
     font-weight: 600;
-    color: var(--white);
+    color: var(--fg);
     letter-spacing: 0.02em;
     display: block;
     margin-bottom: 2px;
@@ -125,7 +175,7 @@
     display: flex;
     align-items: center;
     padding: 0 16px;
-    border-bottom: 1px solid var(--white-15);
+    border-bottom: 1px solid var(--fg-15);
   }
 
   .nav-link {
@@ -133,9 +183,9 @@
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     padding: 12px 16px;
-    border-right: 1px solid var(--white-15);
+    border-right: 1px solid var(--fg-15);
     transition: background 0.12s, color 0.12s;
     cursor: pointer;
     user-select: none;
@@ -144,12 +194,12 @@
   .nav-link:last-child { border-right: none; }
 
   .nav-link:hover {
-    background: var(--white);
-    color: var(--blue);
+    background: var(--fg);
+    color: var(--accent);
   }
 
   .nav-link.active {
-    color: var(--white);
+    color: var(--fg);
     position: relative;
   }
 
@@ -160,16 +210,16 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: var(--white);
+    background: var(--fg);
   }
 
-  .nav-link.active:hover::after { background: var(--blue); }
+  .nav-link.active:hover::after { background: var(--accent); }
 
   /* TICKER */
   .ticker {
     overflow: hidden;
-    background: rgba(0,0,0,0.15);
-    border-bottom: 1px solid var(--white-08);
+    background: rgba(20,36,72,0.04);
+    border-bottom: 1px solid var(--fg-08);
     padding: 5px 0;
   }
 
@@ -185,7 +235,7 @@
   }
 
   .ticker-track span { padding-right: 32px; }
-  .ticker-dot { margin-right: 32px; color: var(--white-15); }
+  .ticker-dot { margin-right: 32px; color: var(--fg-15); }
 
   @keyframes scroll-left {
     from { transform: translateX(0); }
@@ -215,7 +265,7 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--white-15);
+    background: var(--fg-15);
   }
 
   /* ISSUES GRID */
@@ -228,12 +278,12 @@
   /* ISSUE CARD */
   .issue-card {
     position: relative;
-    border: 1px solid var(--white-15);
+    border: 1px solid var(--fg-15);
     padding: 20px 18px 18px;
     transition: border-color 0.18s;
   }
 
-  .issue-card:hover { border-color: rgba(255,255,255,0.55); }
+  .issue-card:hover { border-color: rgba(20,36,72,0.55); }
 
   .card-tag {
     position: absolute;
@@ -243,8 +293,8 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    background: var(--white);
-    color: var(--blue);
+    background: var(--fg);
+    color: var(--accent);
     padding: 3px 7px;
   }
 
@@ -312,7 +362,7 @@
 
   /* blank fallback front (issues without a cover image) */
   .bk-front--blank {
-    background: var(--white);
+    background: #ffffff;
     padding: 10px 9px 8px;
     display: flex;
     flex-direction: column;
@@ -461,7 +511,7 @@
     font-size: 20px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: var(--white);
+    color: var(--fg);
     line-height: 1;
     margin-bottom: 3px;
   }
@@ -478,7 +528,7 @@
   .issue-desc {
     font-size: 14px;
     font-weight: 400;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.55;
     margin-bottom: 12px;
   }
@@ -488,19 +538,19 @@
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--white);
-    border-bottom: 1px solid rgba(255,255,255,0.45);
+    color: var(--fg);
+    border-bottom: 1px solid rgba(20,36,72,0.45);
     padding-bottom: 1px;
     display: inline-block;
     cursor: pointer;
     transition: border-color 0.12s;
   }
 
-  .issue-cta:hover { border-bottom-color: var(--white); }
+  .issue-cta:hover { border-bottom-color: var(--fg); }
 
   .issue-cta.unavailable {
     color: var(--text-muted);
-    border-bottom-color: var(--white-15);
+    border-bottom-color: var(--fg-15);
     cursor: default;
   }
 
@@ -555,7 +605,7 @@
     position: relative;
     width: 100%;
     margin-bottom: 24px;
-    border: 1px solid var(--white-15);
+    border: 1px solid var(--fg-15);
     overflow: hidden;
   }
   .events-banner.show { display: block; }
@@ -583,7 +633,7 @@
     font-weight: 700;
     letter-spacing: 0.01em;
     text-transform: uppercase;
-    color: var(--white);
+    color: var(--fg);
     line-height: 1;
     margin-bottom: 6px;
   }
@@ -604,15 +654,15 @@
     color: var(--text-muted);
     padding: 6px 14px 6px 0;
     margin-right: 14px;
-    border-right: 1px solid var(--white-15);
+    border-right: 1px solid var(--fg-15);
     cursor: pointer;
     transition: color 0.12s;
     user-select: none;
   }
 
   .gallery-filter:last-child { border-right: none; }
-  .gallery-filter:hover { color: var(--white-60); }
-  .gallery-filter.active { color: var(--white); }
+  .gallery-filter:hover { color: var(--fg-60); }
+  .gallery-filter.active { color: var(--fg); }
 
   .gallery-grid {
     columns: 3;
@@ -627,7 +677,7 @@
     margin-bottom: 12px;
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--white-15);
+    border: 1px solid var(--fg-15);
     cursor: pointer;
     display: block;
   }
@@ -655,7 +705,7 @@
   .gallery-overlay-title {
     font-size: 13px;
     font-weight: 700;
-    color: var(--white);
+    color: var(--fg);
     letter-spacing: -0.01em;
     margin-bottom: 2px;
   }
@@ -718,13 +768,13 @@
     font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.01em;
-    color: var(--white);
+    color: var(--fg);
   }
 
   .lightbox-meta {
     font-size: 12px;
     font-weight: 400;
-    color: var(--white-60);
+    color: var(--fg-60);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -737,13 +787,13 @@
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     cursor: pointer;
     transition: color 0.12s;
     user-select: none;
   }
 
-  .lightbox-close:hover { color: var(--white); }
+  .lightbox-close:hover { color: var(--fg); }
 
   .lightbox-nav {
     position: absolute;
@@ -753,14 +803,14 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     cursor: pointer;
     user-select: none;
     transition: color 0.12s;
     padding: 8px;
   }
 
-  .lightbox-nav:hover { color: var(--white); }
+  .lightbox-nav:hover { color: var(--fg); }
   .lightbox-nav.prev { left: -52px; }
   .lightbox-nav.next { right: -52px; }
 
@@ -770,7 +820,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 32px;
-    border-top: 1px solid var(--white-15);
+    border-top: 1px solid var(--fg-15);
     font-size: 12px;
     font-weight: 400;
     color: var(--text-muted);
@@ -779,7 +829,7 @@
   }
 
   .footer-links { display: flex; gap: 20px; }
-  .footer-links a:hover { color: var(--white-60); }
+  .footer-links a:hover { color: var(--fg-60); }
 
   /* ── HERO ACTIONS ───────────────────────────────────────────── */
   .hero-actions { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
@@ -790,8 +840,8 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    background: var(--white);
-    color: var(--blue);
+    background: var(--fg);
+    color: var(--accent);
     border: none;
     padding: 14px 26px;
     cursor: pointer;
@@ -806,13 +856,13 @@
     letter-spacing: 0.16em;
     text-transform: uppercase;
     background: transparent;
-    color: var(--white-60);
-    border: 1px solid var(--white-35);
+    color: var(--fg-60);
+    border: 1px solid var(--fg-35);
     padding: 13px 22px;
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
   }
-  .hero-btn-secondary:hover { color: var(--white); border-color: var(--white); }
+  .hero-btn-secondary:hover { color: var(--fg); border-color: var(--fg); }
 
   /* ── INLINE PAYMENT OPTIONS ─────────────────────────────────── */
   .pay-heading {
@@ -820,7 +870,7 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--white);
+    color: var(--fg);
     margin-top: 22px;
   }
 
@@ -843,13 +893,13 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    border: 1px solid var(--white);
+    border: 1px solid var(--fg);
     padding: 18px 24px 18px;
     text-decoration: none;
     transition: background 0.15s;
     min-width: 180px;
   }
-  .pay-opt:hover { background: rgba(255,255,255,0.06); }
+  .pay-opt:hover { background: rgba(20,36,72,0.06); }
   .pay-opt:hover .pay-opt-cta { opacity: 0.72; }
 
   .pay-opt-cta {
@@ -857,8 +907,8 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--blue);
-    background: var(--white);
+    color: var(--accent);
+    background: var(--fg);
     padding: 11px 18px;
     margin-top: 12px;
     text-align: center;
@@ -871,20 +921,20 @@
     font-weight: 700;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
   }
 
   .pay-opt-price {
     font-family: var(--display);
     font-size: 28px;
     font-weight: 800;
-    color: var(--white);
+    color: var(--fg);
     line-height: 1.1;
   }
 
   .pay-opt-sub {
     font-size: 12px;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.4;
   }
 
@@ -909,7 +959,7 @@
     letter-spacing: 0.04em;
     margin: 0;
   }
-  .form-intro .req { color: var(--white); font-weight: 700; }
+  .form-intro .req { color: var(--fg); font-weight: 700; }
 
   .form-section { border: 0; margin: 0; padding: 0; min-width: 0; }
   .form-legend {
@@ -918,12 +968,12 @@
     float: none;
     padding: 0 0 11px;
     margin: 0 0 20px;
-    border-bottom: 1px solid var(--white-15);
+    border-bottom: 1px solid var(--fg-15);
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--white);
+    color: var(--fg);
   }
   .form-legend-n { color: var(--text-muted); margin-right: 11px; }
   .form-section-body { display: flex; flex-direction: column; gap: 22px; }
@@ -947,9 +997,9 @@
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
   }
-  .form-label .req { color: var(--white); }
+  .form-label .req { color: var(--fg); }
   .form-label .opt {
     font-weight: 400;
     letter-spacing: 0.1em;
@@ -979,7 +1029,7 @@
   }
   .hint-list li:last-child { margin-bottom: 0; }
   .hint-list li::before { content: "—"; position: absolute; left: 0; }
-  .hint-list strong { color: var(--white-60); font-weight: 700; }
+  .hint-list strong { color: var(--fg-60); font-weight: 700; }
 
   .form-input,
   .form-select,
@@ -987,9 +1037,9 @@
     font-family: var(--font);
     font-size: 14px;
     font-weight: 400;
-    color: var(--white);
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--white-15);
+    color: var(--fg);
+    background: rgba(20,36,72,0.03);
+    border: 1px solid var(--fg-15);
     padding: 12px 14px;
     width: 100%;
     transition: border-color 0.14s, background 0.14s;
@@ -1007,22 +1057,22 @@
   .form-select:focus,
   .form-textarea:focus {
     outline: none;
-    border-color: rgba(255,255,255,0.7);
-    background: rgba(255,255,255,0.07);
+    border-color: rgba(20,36,72,0.7);
+    background: rgba(20,36,72,0.05);
   }
 
   .form-select {
     cursor: pointer;
     background-image:
-      linear-gradient(45deg, transparent 50%, var(--white-60) 50%),
-      linear-gradient(135deg, var(--white-60) 50%, transparent 50%);
+      linear-gradient(45deg, transparent 50%, var(--fg-60) 50%),
+      linear-gradient(135deg, var(--fg-60) 50%, transparent 50%);
     background-position:
       calc(100% - 18px) calc(1em + 2px),
       calc(100% - 13px) calc(1em + 2px);
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
   }
-  .form-select option { background: var(--bg); color: var(--white); }
+  .form-select option { background: var(--bg); color: var(--fg); }
 
   /* ── PITCH vs FULL SUBMISSION ───────────────────────────────
      One panel serves both stages. The Submit nav link and ?pitch show
@@ -1040,14 +1090,14 @@
     font-size: 22px;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: var(--white);
+    color: var(--fg);
     line-height: 1.3;
     margin: 0 0 6px;
   }
   .submit-kicker {
     font-size: 16px;
     font-weight: 700;
-    color: var(--white);
+    color: var(--fg);
     line-height: 1.6;
     margin: 0 0 20px;
   }
@@ -1056,15 +1106,15 @@
   .submit-meta {
     display: flex;
     flex-wrap: wrap;
-    border: 1px solid var(--white-15);
-    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--fg-15);
+    background: rgba(20,36,72,0.04);
     margin: 0 0 24px;
   }
   .submit-meta > div {
     flex: 1 1 180px;
     min-width: 0;
     padding: 13px 16px;
-    border-right: 1px solid var(--white-15);
+    border-right: 1px solid var(--fg-15);
   }
   .submit-meta > div:last-child { border-right: none; }
   .submit-meta dt {
@@ -1078,7 +1128,7 @@
   .submit-meta dd {
     font-size: 14px;
     font-weight: 700;
-    color: var(--white);
+    color: var(--fg);
     line-height: 1.45;
     letter-spacing: 0.01em;
     margin: 0;
@@ -1087,7 +1137,7 @@
     .submit-meta > div {
       flex-basis: 100%;
       border-right: none;
-      border-bottom: 1px solid var(--white-15);
+      border-bottom: 1px solid var(--fg-15);
     }
     .submit-meta > div:last-child { border-bottom: none; }
   }
@@ -1095,7 +1145,7 @@
   .submit-body p {
     font-size: 16px;
     font-weight: 400;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.75;
     margin: 0 0 14px;
   }
@@ -1103,7 +1153,7 @@
   /* Background on the genre is context, not instruction — folded away so it
      doesn't stand between the call and the form. */
   .submit-more {
-    border-top: 1px solid var(--white-15);
+    border-top: 1px solid var(--fg-15);
     margin-top: 4px;
     padding-top: 14px;
   }
@@ -1117,13 +1167,13 @@
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     transition: color 0.14s;
   }
   .submit-more > summary::-webkit-details-marker { display: none; }
   .submit-more > summary::after { content: "+"; font-size: 14px; line-height: 1; }
   .submit-more[open] > summary::after { content: "–"; }
-  .submit-more > summary:hover { color: var(--white); }
+  .submit-more > summary:hover { color: var(--fg); }
   .submit-more p {
     font-size: 14px;
     color: var(--text-muted);
@@ -1134,9 +1184,9 @@
   /* ── STAGE CARD ─────────────────────────────────────────────── */
   .stage-card {
     max-width: 620px;
-    border: 1px solid var(--white-15);
-    border-left: 2px solid var(--white);
-    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--fg-15);
+    border-left: 2px solid var(--fg);
+    background: rgba(20,36,72,0.05);
     padding: 18px 20px;
     margin-top: 28px;
   }
@@ -1145,13 +1195,13 @@
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--white);
+    color: var(--fg);
     margin-bottom: 10px;
   }
   .stage-note {
     font-size: 15px;
     font-weight: 400;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.7;
     margin: 0;
   }
@@ -1160,10 +1210,10 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--white);
+    color: var(--fg);
     margin-top: 14px;
     padding-top: 13px;
-    border-top: 1px solid var(--white-15);
+    border-top: 1px solid var(--fg-15);
   }
 
   /* ── SUBMIT LAYOUT: form left, guidelines right ─────────────── */
@@ -1201,17 +1251,17 @@
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--white);
+      color: var(--fg);
       text-decoration: none;
-      border-bottom: 1px solid var(--white-15);
+      border-bottom: 1px solid var(--fg-15);
       padding-bottom: 3px;
     }
-    .form-jump:hover { border-bottom-color: var(--white); }
+    .form-jump:hover { border-bottom-color: var(--fg); }
   }
 
   .submit-guidelines-inner {
-    border: 1px solid var(--white-15);
-    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--fg-15);
+    background: rgba(20,36,72,0.04);
     padding: 22px 22px 26px;
   }
   @media (min-width: 901px) {
@@ -1223,7 +1273,7 @@
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--white);
+    color: var(--fg);
     margin-bottom: 16px;
   }
   .guide-group { margin-bottom: 22px; }
@@ -1233,14 +1283,14 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     margin-bottom: 9px;
   }
   .guide-list { list-style: none; margin: 0; padding: 0; }
   .guide-list li {
     font-size: 13px;
     font-weight: 400;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.6;
     padding-left: 18px;
     position: relative;
@@ -1252,13 +1302,13 @@
     left: 0;
     color: var(--text-muted);
   }
-  .guide-date { color: var(--white); font-weight: 700; }
-  .guide-list strong { color: var(--white); font-weight: 700; }
+  .guide-date { color: var(--fg); font-weight: 700; }
+  .guide-list strong { color: var(--fg); font-weight: 700; }
 
   /* The sending rules are the group that most often goes wrong, so they
      carry the same accent as the stage card. */
   .guide-group.is-key {
-    border-left: 2px solid var(--white);
+    border-left: 2px solid var(--fg);
     padding-left: 14px;
   }
 
@@ -1268,8 +1318,8 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--blue);
-    background: var(--white);
+    color: var(--accent);
+    background: var(--fg);
     border: none;
     padding: 15px 22px;
     cursor: pointer;
@@ -1293,29 +1343,29 @@
     letter-spacing: 0.02em;
     line-height: 1.6;
     padding: 14px 16px;
-    border: 1px solid var(--white-15);
-    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--fg-15);
+    background: rgba(20,36,72,0.05);
     display: none;
   }
   .form-status.show { display: block; }
-  .form-status.ok   { border-color: rgba(255,255,255,0.5); }
+  .form-status.ok   { border-color: rgba(20,36,72,0.5); }
   .form-status.err  { border-color: rgba(255,120,120,0.6); color: #ffd9d9; }
 
   /* honeypot */
   .form-hp { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; }
 
   .word-count { margin-top: 6px; text-align: right; }
-  .word-count.over { color: var(--white); font-weight: 700; }
+  .word-count.over { color: var(--fg); font-weight: 700; }
 
   .form-check {
     display: flex; gap: 12px; align-items: flex-start;
-    font-size: 14px; line-height: 1.5; color: var(--white); cursor: pointer;
+    font-size: 14px; line-height: 1.5; color: var(--fg); cursor: pointer;
   }
   .form-check input {
     flex: none; width: 20px; height: 20px; margin: 1px 0 0;
-    accent-color: var(--white); cursor: pointer;
+    accent-color: var(--fg); cursor: pointer;
   }
-  .form-hint strong { color: var(--white); font-weight: 700; }
+  .form-hint strong { color: var(--fg); font-weight: 700; }
 
   /* Jump from the top of the Submit page to the form — phones only, where
      the call text above runs several screens long. */
@@ -1335,14 +1385,14 @@
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--blue);
-      background: var(--white);
+      color: var(--accent);
+      background: var(--fg);
     }
     .pitch-jump:has(+ .pitch-jump--guide) { margin-bottom: 10px; }
     .pitch-jump--guide {
-      color: var(--white);
+      color: var(--fg);
       background: transparent;
-      border: 1px solid var(--white-60);
+      border: 1px solid var(--fg-60);
     }
     #submitContent[data-mode="submit"] .pitch-jump.mode-pitch { display: none; }
 
@@ -1354,7 +1404,7 @@
     .form-label {
       font-size: 14px;
       letter-spacing: 0.06em;
-      color: var(--white);
+      color: var(--fg);
     }
     .form-label .opt { font-size: 12px; letter-spacing: 0.06em; }
     .form-hint,
@@ -1394,13 +1444,13 @@
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     cursor: pointer;
     user-select: none;
     width: fit-content;
     transition: color 0.14s;
   }
-  .detail-back:hover { color: var(--white); }
+  .detail-back:hover { color: var(--fg); }
 
   .detail-hero {
     display: grid;
@@ -1434,7 +1484,7 @@
     justify-content: space-between;
     align-items: baseline;
     gap: 10px;
-    border-bottom: 1px solid var(--white-08);
+    border-bottom: 1px solid var(--fg-08);
     padding: 5px 0;
   }
   .detail-sidebar .specs-key {
@@ -1447,7 +1497,7 @@
   }
   .detail-sidebar .specs-val {
     font-size: 12px;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.3;
     text-align: right;
   }
@@ -1461,8 +1511,8 @@
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.06em;
-    color: var(--white);
-    border: 1px solid var(--white-35);
+    color: var(--fg);
+    border: 1px solid var(--fg-35);
     padding: 3px 8px;
     line-height: 1.4;
     white-space: nowrap;
@@ -1478,7 +1528,7 @@
     position: relative;
     width: 100%;
     background: #000;
-    border: 1px solid var(--white-15);
+    border: 1px solid var(--fg-15);
     aspect-ratio: 8.5 / 11;
     overflow: hidden;
   }
@@ -1496,7 +1546,7 @@
     flex-wrap: wrap;
     margin-top: 32px;
     padding-top: 24px;
-    border-top: 1px solid var(--white-15);
+    border-top: 1px solid var(--fg-15);
   }
   .detail-contributors { flex: 1; min-width: 200px; }
   /* desktop: left-col contributors visible, mobile standalone hidden */
@@ -1515,8 +1565,8 @@
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.06em;
-    color: var(--white);
-    border: 1px solid var(--white-35);
+    color: var(--fg);
+    border: 1px solid var(--fg-35);
     padding: 3px 8px;
     line-height: 1.4;
     white-space: nowrap;
@@ -1528,8 +1578,8 @@
     font-weight: 700;
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: var(--blue);
-    background: var(--white);
+    color: var(--accent);
+    background: var(--fg);
     display: inline-block;
     padding: 3px 9px;
     margin-bottom: 18px;
@@ -1552,10 +1602,10 @@
     color: var(--text-muted);
     margin-bottom: 20px;
   }
-  .detail-price { font-size: 20px; font-weight: 600; color: var(--white); margin-bottom: 20px; }
+  .detail-price { font-size: 20px; font-weight: 600; color: var(--fg); margin-bottom: 20px; }
   .detail-desc {
     font-size: 16px;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.7;
     max-width: 48ch;
     margin-bottom: 26px;
@@ -1565,8 +1615,8 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--blue);
-    background: var(--white);
+    color: var(--accent);
+    background: var(--fg);
     padding: 15px 26px;
     width: fit-content;
     cursor: pointer;
@@ -1591,7 +1641,7 @@
   }
   .spread {
     position: relative;
-    border: 1px solid var(--white-15);
+    border: 1px solid var(--fg-15);
     overflow: hidden;
     background: #fff;
     padding: 0;
@@ -1613,7 +1663,7 @@
   /* placeholder (issues without spread scans yet) */
   .spread--ph {
     aspect-ratio: 1.5;
-    background: rgba(255,255,255,0.05);
+    background: rgba(20,36,72,0.05);
     cursor: default;
     display: flex;
     flex-direction: column;
@@ -1628,14 +1678,14 @@
     inset: 0;
     background: repeating-linear-gradient(45deg,
       transparent, transparent 6px,
-      rgba(255,255,255,0.05) 6px, rgba(255,255,255,0.05) 7px);
+      rgba(20,36,72,0.05) 6px, rgba(20,36,72,0.05) 7px);
   }
   .spread-ph-label {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     z-index: 1;
   }
   .spread-ph-sub {
@@ -1651,14 +1701,14 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     column-gap: 32px;
-    border-top: 1px solid var(--white-15);
+    border-top: 1px solid var(--fg-15);
   }
   .specs-item {
     display: flex;
     flex-direction: column;
     gap: 5px;
     padding: 16px 0;
-    border-bottom: 1px solid var(--white-15);
+    border-bottom: 1px solid var(--fg-15);
   }
   .specs-key {
     font-size: 12px;
@@ -1667,14 +1717,14 @@
     text-transform: uppercase;
     color: var(--text-muted);
   }
-  .specs-val { font-size: 14px; color: var(--white); line-height: 1.5; }
+  .specs-val { font-size: 14px; color: var(--fg); line-height: 1.5; }
 
   /* contributors */
   .contrib-list {
     columns: 2;
     column-gap: 32px;
     font-size: 14px;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.95;
   }
   @media (max-width: 560px) { .contrib-list { columns: 1; } }
@@ -1705,10 +1755,10 @@
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     cursor: pointer;
   }
-  .spread-lb-close:hover { color: var(--white); }
+  .spread-lb-close:hover { color: var(--fg); }
 
   /* ── IN-PLACE FLIP-BOOK (hero book opens into a magazine you flip through) ── */
   .flipbook {
@@ -1822,7 +1872,7 @@
   .fb-close {
     position: absolute; top: 4px; right: 6px;
     font-family: var(--display); font-size: 12px; font-weight: 600;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--white);
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg);
     background: none; border: none; cursor: pointer; user-select: none;
     z-index: 7; padding: 6px 4px;
   }
@@ -1831,11 +1881,11 @@
   .fb-bar {
     display: flex; align-items: center; gap: 16px;
     font-family: var(--display); font-size: 12px; font-weight: 500;
-    letter-spacing: 0.14em; text-transform: uppercase; color: var(--white);
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg);
     flex-shrink: 0;
   }
-  .fb-counter { color: var(--white); }
-  .fb-hint { color: var(--white-60); font-weight: 400; letter-spacing: 0.1em; }
+  .fb-counter { color: var(--fg); }
+  .fb-hint { color: var(--fg-60); font-weight: 400; letter-spacing: 0.1em; }
 
   @media (prefers-reduced-motion: reduce) {
     .fb-page, .fb-viewport, .fb-leaf.turning { transition-duration: 0.001s; }
@@ -1863,7 +1913,7 @@
     width: 100%;
     max-width: 420px;
     background: var(--bg);
-    border: 1px solid var(--white-35);
+    border: 1px solid var(--fg-35);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
     padding: 36px 30px 28px;
     animation: ep-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -1882,11 +1932,11 @@
     font-family: var(--display);
     font-size: 18px;
     line-height: 1;
-    color: var(--white-60);
+    color: var(--fg-60);
     cursor: pointer;
     padding: 6px 8px;
   }
-  .email-close:hover { color: var(--white); }
+  .email-close:hover { color: var(--fg); }
 
   .email-eyebrow {
     font-family: var(--display);
@@ -1894,7 +1944,7 @@
     font-weight: 700;
     letter-spacing: 0.24em;
     text-transform: uppercase;
-    color: var(--white-60);
+    color: var(--fg-60);
     margin-bottom: 12px;
   }
   .email-title {
@@ -1904,12 +1954,12 @@
     line-height: 1.05;
     letter-spacing: -0.01em;
     text-transform: uppercase;
-    color: var(--white);
+    color: var(--fg);
     margin-bottom: 10px;
   }
   .email-sub {
     font-size: 13px;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.55;
     margin-bottom: 20px;
   }
@@ -1940,14 +1990,14 @@
     margin-top: 4px;
     padding: 6px;
   }
-  .email-nothanks:hover { color: var(--white); }
+  .email-nothanks:hover { color: var(--fg); }
 
   .email-msg {
     font-family: var(--display);
     font-size: 15px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: var(--white);
+    color: var(--fg);
     line-height: 1.5;
   }
 
@@ -1967,7 +2017,7 @@
     align-items: start;               /* pin the info column to the top, right below the nav */
     height: var(--hero-h, calc(100vh - 130px));
     padding: 28px 0 24px;
-    border-bottom: 1px solid var(--white-15);
+    border-bottom: 1px solid var(--fg-15);
     margin-bottom: 0;
     overflow: clip;
   }
@@ -2032,8 +2082,8 @@
     font-weight: 700;
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: var(--blue);
-    background: var(--white);
+    color: var(--accent);
+    background: var(--fg);
     display: inline-block;
     padding: 3px 9px;
     margin-bottom: 20px;
@@ -2045,7 +2095,7 @@
     font-weight: 800;
     letter-spacing: 0;
     line-height: 0.95;
-    color: var(--white);
+    color: var(--fg);
     text-transform: uppercase;
     margin-bottom: 16px;
   }
@@ -2062,7 +2112,7 @@
   .hero-desc {
     font-size: 15px;
     font-weight: 400;
-    color: var(--white-60);
+    color: var(--fg-60);
     line-height: 1.55;
     max-width: 360px;
     margin-bottom: 24px;
@@ -2073,8 +2123,8 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--white);
-    border-bottom: 2px solid var(--white);
+    color: var(--fg);
+    border-bottom: 2px solid var(--fg);
     padding-bottom: 2px;
     display: inline-block;
     cursor: pointer;
@@ -2130,13 +2180,13 @@
     display: block;
     width: 22px;
     height: 2px;
-    background: var(--white-60);
+    background: var(--fg-60);
     transition: transform 0.22s ease, opacity 0.22s ease, background 0.22s ease;
     pointer-events: none;
   }
-  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--white); }
+  .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); background: var(--fg); }
   .nav-hamburger.open span:nth-child(2) { opacity: 0; }
-  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--white); }
+  .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); background: var(--fg); }
 
   /* ── MOBILE ≤ 700px ──────────────────────────────────────── */
   @media (max-width: 700px) {
@@ -2147,12 +2197,12 @@
       display: none;
       flex-direction: column;
       width: 100%;
-      border-top: 1px solid var(--white-15);
+      border-top: 1px solid var(--fg-15);
     }
     .nav-links-wrap.open { display: flex; }
     .nav-link {
       border-right: none;
-      border-bottom: 1px solid var(--white-08);
+      border-bottom: 1px solid var(--fg-08);
       padding: 14px 20px;
       font-size: 13px;
       letter-spacing: 0.06em;
@@ -2228,7 +2278,7 @@
       height: 34px;
       border: none;
       background: rgba(0, 0, 0, 0.55);
-      color: var(--white);
+      color: var(--fg);
       font-size: 18px;
       line-height: 1;
       cursor: pointer;
@@ -2255,7 +2305,7 @@
       background: rgba(255, 255, 255, 0.4);
       transition: background 0.15s, transform 0.15s;
     }
-    .media-dot.active { background: var(--white); transform: scale(1.3); }
+    .media-dot.active { background: var(--fg); transform: scale(1.3); }
 
     /* Spreads now live in the top slideshow — hide the separate grid on mobile */
     .detail-section { display: none; }
@@ -2312,9 +2362,6 @@
 </style>
 </head>
 <body>
-
-<!-- Background circuit lines, drawn by the BACKGROUND CYBER LINES script -->
-<canvas id="bgLines" aria-hidden="true"></canvas>
 
 <header class="header">
   <div class="logo-block">
@@ -2419,7 +2466,7 @@
   <!-- GALLERY TAB -->
   <div class="tab-panel" id="tab-gallery">
     <div class="section-label">Gallery</div>
-    <p style="font-size:14px; color:var(--white-60); line-height:1.7;">Coming soon.</p>
+    <p style="font-size:14px; color:var(--fg-60); line-height:1.7;">Coming soon.</p>
   </div>
 
   <!-- ABOUT TAB -->
@@ -2427,16 +2474,16 @@
     <div class="section-label">About</div>
     <div class="about-row" style="display:flex; gap:40px; align-items:flex-start; flex-wrap:wrap;">
       <div class="about-text" style="flex:1; min-width:260px; display:flex; flex-direction:column; gap:20px;">
-        <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+        <p style="font-size:16px; font-weight:400; color:var(--fg-60); line-height:1.75;">
           Login is a print publication documenting digital art, life, and culture. Each issue explores the experience of living online, where identity, consumption, and technology continuously intersect.
         </p>
-        <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+        <p style="font-size:16px; font-weight:400; color:var(--fg-60); line-height:1.75;">
           Login exists at a moment when culture and technology are fully entangled. Through essays, visual work, and contributions from artists, designers, and technologists, Login explores how digital systems shape culture, behavior, and perception. By doing this, Login investigates the labor, platforms, and theory behind modern networked culture.
         </p>
-        <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+        <p style="font-size:16px; font-weight:400; color:var(--fg-60); line-height:1.75;">
           Login is critical of technology because it's worth caring about. It treats the conditions of networked culture as objects of real study: the politics of a platform, the design of a feed, the economy underneath a trend, with the aim of understanding a world increasingly shaped by the internet. Login believes conversation and community are how better alternatives get built, and it invites artists, designers, and technologists to imagine what those alternatives could look like.
         </p>
-        <p style="font-size:16px; font-weight:400; color:var(--white-60); line-height:1.75;">
+        <p style="font-size:16px; font-weight:400; color:var(--fg-60); line-height:1.75;">
           Designed as a physical artifact, Login slows the feed into something meant to be held, revisited, and archived.
         </p>
         <p style="font-size:12px; font-weight:400; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:8px;">
@@ -2455,7 +2502,7 @@
   <!-- STOCKISTS TAB (placeholder) -->
   <div class="tab-panel" id="tab-stockists">
     <div class="section-label">Stockists</div>
-    <p style="font-size:14px; color:var(--white-60); line-height:1.7;">Coming soon.</p>
+    <p style="font-size:14px; color:var(--fg-60); line-height:1.7;">Coming soon.</p>
   </div>
 
   <!-- SUBMIT TAB -->
@@ -2991,7 +3038,7 @@ function renderIssueDetail(idx) {
           <div class="media-dots" id="mediaDots"></div>
         </div>
         ${(iss.contributors || iss.interviews) ? `
-        <div class="detail-contributors-outer detail-contrib-desktop" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--white-15);">
+        <div class="detail-contributors-outer detail-contrib-desktop" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--fg-15);">
           ${contribHTML}
         </div>` : ''}
       </div>
@@ -4165,435 +4212,6 @@ if (heroBook && heroStage) {
   window.addEventListener('scroll', stale, { passive: true });
   window.addEventListener('resize', stale);
 
-}());
-</script>
-
-<script>
-/* ── BACKGROUND CYBER LINES ──────────────────────────────────
-   Circuit-board traces that draw themselves in, hold, and fade, forever —
-   grown from cyber-lines.html (LOGIN/2.0). Runs are horizontal/vertical
-   with 45° chamfered corners, buses run in
-   parallel, and chips put out rows of pins. Neon blue → cyan → green →
-   white, with a soft glow.
-   The canvas sits behind the page, and every frame the lines are erased
-   wherever there is copy, an image, a field or a button, so they never
-   run through anything someone needs to read. */
-(function () {
-  'use strict';
-  const cv = document.getElementById('bgLines');
-  if (!cv || !cv.getContext) return;
-  const ctx = cv.getContext('2d');
-
-  const PHONE = window.matchMedia('(max-width: 700px)').matches;
-  const STILL = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const P = {
-    speed: 240, density: PHONE ? 10 : 22, hold: 4, fade: 2.5,
-    width: 0,                      // set in size(): one device pixel — true hairline
-    // glow: wider, fainter strokes under the core
-    glow: PHONE ? [[2.2, 0.07], [1.2, 0.16]] : [[4, 0.06], [1.6, 0.14]],
-    run45: 0.18,                   // chance a corner becomes a 45° run instead
-    bus: 0.7, chip: 0.35,          // entity weights (single trace = 1)
-  };
-  // neon blue → cyan → neon green → white, lifted toward white so they read light
-  const RGB = [[110, 150, 255], [120, 240, 255], [150, 255, 130], [255, 255, 255]];
-  const STOPS = [0, 0.38, 0.72, 1];
-  const PAD = 10;    // clear space kept around copy, px
-
-  const rand = (a, b) => a + Math.random() * (b - a);
-  const randi = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
-  const chance = p => Math.random() < p;
-  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-  function weighted(opts) {
-    let sum = 0;
-    for (const o of opts) sum += o[1];
-    let r = Math.random() * sum;
-    for (const o of opts) { if ((r -= o[1]) <= 0) return o[0]; }
-    return opts[opts.length - 1][0];
-  }
-  function colorAt(t) {
-    t = Math.min(1, Math.max(0, t));
-    let i = 0;
-    while (i < STOPS.length - 2 && t > STOPS[i + 1]) i++;
-    const u = (t - STOPS[i]) / (STOPS[i + 1] - STOPS[i]);
-    const a = RGB[i], b = RGB[i + 1];
-    return `rgb(${a[0] + (b[0] - a[0]) * u | 0},${a[1] + (b[1] - a[1]) * u | 0},${a[2] + (b[2] - a[2]) * u | 0})`;
-  }
-
-  // ---------- canvas & grid ----------
-  let W = 0, H = 0, DPR = 1, U = 20, COLS = 0, ROWS = 0, OX = 0, OY = 0;
-  function size() {
-    W = window.innerWidth; H = window.innerHeight;
-    DPR = Math.min(PHONE ? 1.5 : 2, window.devicePixelRatio || 1);
-    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-    U = Math.max(20, Math.round(Math.min(W, H) / 21));
-    P.width = 1 / DPR;
-    COLS = Math.floor(W / U); ROWS = Math.floor(H / U);
-    OX = (W - COLS * U) / 2; OY = (H - ROWS * U) / 2;
-  }
-  const toPx = p => [OX + p[0] * U, OY + p[1] * U];
-
-  // 8 directions, 45° apart; even = horizontal/vertical, odd = diagonal
-  const DX = [1, 1, 0, -1, -1, -1, 0, 1];
-  const DY = [0, 1, 1, 1, 0, -1, -1, -1];
-  function room(x, y, d) {
-    let r = Infinity;
-    if (DX[d] > 0) r = Math.min(r, COLS - 1 - x); else if (DX[d] < 0) r = Math.min(r, x - 1);
-    if (DY[d] > 0) r = Math.min(r, ROWS - 1 - y); else if (DY[d] < 0) r = Math.min(r, y - 1);
-    return r;
-  }
-
-  /* A PCB-style route from (x, y) heading d. Straight runs; each corner is
-     a 90° turn cut by a short 45° chamfer, or now and then a 45° run. May
-     run off the canvas edge (exited) or stop on the board. */
-  function route(x, y, d, o = {}) {
-    const pts = [[x, y]];
-    const segs = o.segs || randi(3, 7);
-    const maxRun = Math.max(4, Math.round(Math.max(COLS, ROWS) * 0.35));
-    for (let s = 0; s < segs; s++) {
-      const r = room(x, y, d);
-      const diag = d % 2 === 1;
-      // last run of an edge-launched or outward trace may leave the board
-      if (o.canExit && s >= 2 && (s === segs - 1 || chance(0.2)) && r < maxRun) {
-        const len = r + 3;
-        x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
-        return { pts, exited: true };
-      }
-      if (r < 2) break;
-      const len = diag ? randi(1, Math.min(4, r)) : randi(Math.min(2, r), Math.min(r - 1 || 1, maxRun));
-      x += DX[d] * len; y += DY[d] * len; pts.push([x, y]);
-      if (s === segs - 1) break;
-
-      // corner
-      if (diag) {                              // diagonal run → back to straight
-        const nd = (d + pick([-1, 1]) + 8) % 8;
-        if (room(x, y, nd) < 3) break;
-        d = nd; continue;
-      }
-      if (chance(P.run45)) {                   // straight → 45° run
-        const nd = (d + pick([-1, 1]) + 8) % 8;
-        if (room(x, y, nd) >= 2) { d = nd; continue; }
-      }
-      let turn = pick([-2, 2]);
-      if (room(x, y, (d + turn + 8) % 8) < 4) turn = -turn;
-      const nd = (d + turn + 8) % 8, cd = (d + turn / 2 + 8) % 8;
-      if (room(x, y, nd) < 4) break;
-      const c = chance(0.7) ? 1 : 2;           // chamfer
-      x += DX[cd] * c; y += DY[cd] * c; pts.push([x, y]);
-      d = nd;
-    }
-    return { pts, exited: false };
-  }
-
-  function edgeStart() {
-    const side = randi(0, 3);
-    if (side === 0) return [-2, randi(3, ROWS - 3), 0];
-    if (side === 1) return [COLS + 2, randi(3, ROWS - 3), 4];
-    if (side === 2) return [randi(3, COLS - 3), -2, 2];
-    return [randi(3, COLS - 3), ROWS + 2, 6];
-  }
-  function interiorStart() {
-    return [randi(3, COLS - 3), randi(3, ROWS - 3), pick([0, 2, 4, 6])];
-  }
-
-  // parallel offset of a pixel polyline (mitered corners)
-  function offsetPolyline(pts, dist) {
-    const out = [];
-    for (let i = 0; i < pts.length; i++) {
-      let n1 = null, n2 = null;
-      if (i > 0) {
-        const dx = pts[i][0] - pts[i - 1][0], dy = pts[i][1] - pts[i - 1][1], l = Math.hypot(dx, dy);
-        if (l > 1e-9) n1 = [-dy / l, dx / l];
-      }
-      if (i < pts.length - 1) {
-        const dx = pts[i + 1][0] - pts[i][0], dy = pts[i + 1][1] - pts[i][1], l = Math.hypot(dx, dy);
-        if (l > 1e-9) n2 = [-dy / l, dx / l];
-      }
-      n1 = n1 || n2; n2 = n2 || n1;
-      if (!n1) { out.push(pts[i].slice()); continue; }
-      const k = dist / Math.max(0.15, 1 + n1[0] * n2[0] + n1[1] * n2[1]);
-      out.push([pts[i][0] + (n1[0] + n2[0]) * k, pts[i][1] + (n1[1] + n2[1]) * k]);
-    }
-    return out;
-  }
-
-  // ---------- traces ----------
-  function makeTrace(pts, o) {
-    const p = [pts[0]];
-    for (let i = 1; i < pts.length; i++) {
-      const q = p[p.length - 1];
-      if (Math.hypot(pts[i][0] - q[0], pts[i][1] - q[1]) > 0.01) p.push(pts[i]);
-    }
-    if (p.length < 2) return null;
-    const cum = [0];
-    for (let i = 1; i < p.length; i++) cum.push(cum[i - 1] + Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]));
-    let L = cum[cum.length - 1];
-    if (o.trim) L *= o.trim;
-    const t = { pts: p, cum, L, head: 0, t0: o.t0, t1: o.t1, start: o.start, spd: o.spd, grad: [] };
-    return t;
-  }
-  function pointAt(t, s) {
-    for (let i = 0; i < t.pts.length - 1; i++) {
-      if (t.cum[i + 1] >= s) {
-        const u = (s - t.cum[i]) / (t.cum[i + 1] - t.cum[i] || 1);
-        const [x0, y0] = t.pts[i], [x1, y1] = t.pts[i + 1];
-        return [x0 + (x1 - x0) * u, y0 + (y1 - y0) * u];
-      }
-    }
-    return t.pts[t.pts.length - 1];
-  }
-
-  function spawnEntity(start) {
-    const base = { t0: rand(0, 0.3), t1: rand(0.75, 1), spd: rand(0.85, 1.15), start };
-    const kind = weighted([['trace', 1], ['bus', P.bus], ['chip', P.chip]]);
-    const out = [];
-    const add = (px, more) => { const t = makeTrace(px, Object.assign({}, base, more)); if (t) out.push(t); };
-
-    if (kind === 'trace' || kind === 'bus') {
-      const fromEdge = chance(0.6);
-      const [x, y, d] = fromEdge ? edgeStart() : interiorStart();
-      const w = route(x, y, d, { canExit: fromEdge ? chance(0.5) : true });
-      const px = w.pts.map(toPx);
-      if (kind === 'trace') {
-        add(px, {});
-      } else {
-        const n = randi(2, 6), sp = U * pick([0.75, 1, 1.25]), side = chance(0.5) ? 1 : -1;
-        for (let i = 0; i < n; i++) {
-          const trim = (!w.exited && i > 0 && chance(0.4)) ? rand(0.6, 0.95) : 0;
-          add(offsetPolyline(px, side * i * sp), {
-            start: start + i * rand(0.03, 0.12), trim,
-          });
-        }
-      }
-      return out;
-    }
-
-    // chip: an outline, rows of pins, and buses routed out from the pins
-    const cw = randi(4, 9), ch = randi(3, 6);
-    if (COLS < cw + 12 || ROWS < ch + 12) return out;
-    const x0 = randi(6, COLS - cw - 6), y0 = randi(6, ROWS - ch - 6);
-    add([[x0, y0], [x0 + cw, y0], [x0 + cw, y0 + ch], [x0, y0 + ch], [x0, y0]].map(toPx), {});
-    // sides as [outward direction, pin positions along the edge, along-edge step]
-    const sides = [
-      [6, i => [x0 + i, y0], cw, [1, 0]],        // top, pins point up
-      [2, i => [x0 + i, y0 + ch], cw, [1, 0]],   // bottom
-      [4, i => [x0, y0 + i], ch, [0, 1]],        // left
-      [0, i => [x0 + cw, y0 + i], ch, [0, 1]],   // right
-    ];
-    const pinStart = start + 0.35;
-    for (const [od, at, len, along] of sides) {
-      if (!chance(len === cw ? 0.8 : 0.5)) continue;
-      // pin stubs
-      for (let i = 1; i < len; i++) {
-        const [px0, py0] = at(i);
-        add([[px0, py0], [px0 + DX[od] * 0.6, py0 + DY[od] * 0.6]].map(toPx),
-            { start: pinStart + i * 0.02 });
-      }
-      // a bus from k neighbouring pins
-      if (!chance(0.75) || len < 3) continue;
-      const k = randi(2, Math.min(5, len - 1)), i0 = randi(1, len - k);
-      const [sx, sy] = at(i0);
-      const w = route(sx, sy, od, { canExit: chance(0.6), segs: randi(2, 5) });
-      const px = w.pts.map(toPx);
-      // offset toward the next pins: left normal of the outward direction
-      const nx = -DY[od], ny = DX[od];
-      const sign = (along[0] * nx + along[1] * ny) >= 0 ? 1 : -1;
-      for (let j = 0; j < k; j++) {
-        const trim = (!w.exited && j > 0 && chance(0.3)) ? rand(0.6, 0.95) : 0;
-        add(offsetPolyline(px, sign * j * U), {
-          start: pinStart + 0.3 + j * rand(0.03, 0.1), trim,
-        });
-      }
-    }
-    return out;
-  }
-
-  // ---------- keeping groups apart ----------
-  /* Grid cells (one per U) that each live group runs through. A new group
-     is only placed where none of its cells are another group's, so
-     separate groups never cross. */
-  const used = new Map();
-  function cellsOf(traces) {
-    const cells = new Set(), step = U / 3;
-    for (const t of traces) {
-      for (let s = 0; s < t.L + step; s += step) {
-        const [x, y] = pointAt(t, Math.min(s, t.L));
-        cells.add(Math.floor(x / U) + ',' + Math.floor(y / U));
-      }
-    }
-    return cells;
-  }
-  function clashes(cells) {
-    for (const c of cells) if (used.has(c)) return true;
-    return false;
-  }
-  function claim(cells, n) {
-    for (const c of cells) {
-      const v = (used.get(c) || 0) + n;
-      if (v > 0) used.set(c, v); else used.delete(c);
-    }
-  }
-  // a few tries at an entity that stays clear of the others; null if none fit
-  function placeEntity(start, state) {
-    for (let i = 0; i < 30; i++) {
-      const traces = spawnEntity(start);
-      if (!traces.length) continue;
-      const cells = cellsOf(traces);
-      if (clashes(cells)) continue;
-      claim(cells, 1);
-      return { traces, cells, state, holdEnd: 0, exitStart: 0, alpha: 1 };
-    }
-    return null;
-  }
-
-  let groups = [], simT = 0, nextSpawn = 0;
-  function update(dt) {
-    const now = simT;
-    const live = groups.filter(g => g.state !== 'exit').length;
-    if (live < P.density && now >= nextSpawn) {
-      const g = placeEntity(now + rand(0, 0.2), 'grow');
-      if (g) groups.push(g);
-      nextSpawn = now + rand(0.1, 0.35);
-    }
-    for (const g of groups) {
-      for (const t of g.traces) {
-        if (now >= t.start && t.head < t.L) t.head = Math.min(t.L, t.head + dt * P.speed * t.spd);
-      }
-      if (g.state === 'grow' && g.traces.every(t => t.head >= t.L)) {
-        g.state = 'hold'; g.holdEnd = now + P.hold * rand(0.5, 1.5);
-      }
-      if (g.state === 'hold' && now >= g.holdEnd) { g.state = 'exit'; g.exitStart = now; }
-      if (g.state === 'exit') {
-        g.alpha = Math.max(0, 1 - (now - g.exitStart) / P.fade);
-        g.done = g.alpha <= 0;
-        if (g.done) claim(g.cells, -1);
-      }
-    }
-    groups = groups.filter(g => !g.done);
-  }
-
-  // ---------- copy to keep clear ----------
-  /* Rectangles (viewport px) of every line of visible text plus images,
-     fields and buttons. Refreshed when the page scrolls, resizes or is
-     interacted with, and every half second for anything that animates. */
-  let holes = [], holesDirty = true, lastHoles = 0;
-  // media, form controls, and bordered boxes cleared whole rather than line by line
-  const SOLID = 'img,video,svg,picture,iframe,input,textarea,select,button,.book,.spread,' +
-                '.submit-meta,.stage-card,.submit-guidelines-inner,.form-status,.pitch-jump,.email-card';
-  const range = document.createRange();
-  function collectHoles() {
-    const out = [];
-    const push = r => {
-      if (r.width < 1 || r.height < 1 || r.bottom < -PAD || r.top > H + PAD || r.right < -PAD || r.left > W + PAD) return;
-      out.push([r.left - PAD, r.top - PAD, r.width + PAD * 2, r.height + PAD * 2]);
-    };
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode: n => /\S/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT,
-    });
-    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      const tag = n.parentElement && n.parentElement.tagName;
-      if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'OPTION') continue;
-      range.selectNodeContents(n);
-      for (const r of range.getClientRects()) push(r);
-    }
-    for (const el of document.querySelectorAll(SOLID)) push(el.getBoundingClientRect());
-    holes = out;
-  }
-  const markDirty = () => { holesDirty = true; };
-  ['scroll', 'resize', 'click', 'input', 'keyup', 'touchend', 'transitionend', 'animationend']
-    .forEach(e => window.addEventListener(e, markDirty, { passive: true, capture: true }));
-
-  // ---------- rendering ----------
-  function segGrad(t, i) {
-    if (t.grad[i]) return t.grad[i];
-    const [x0, y0] = t.pts[i], [x1, y1] = t.pts[i + 1];
-    const full = t.cum[t.cum.length - 1];
-    const ta = t.t0 + (t.t1 - t.t0) * t.cum[i] / full;
-    const tb = t.t0 + (t.t1 - t.t0) * t.cum[i + 1] / full;
-    const g = ctx.createLinearGradient(x0, y0, x1, y1);
-    const n = 2 + Math.ceil(Math.abs(tb - ta) * 12);
-    for (let k = 0; k < n; k++) { const u = k / (n - 1); g.addColorStop(u, colorAt(t.t0 === t.t1 ? ta : ta + (tb - ta) * u)); }
-    return (t.grad[i] = g);
-  }
-  function drawRange(t, b) {
-    for (let i = 0; i < t.pts.length - 1; i++) {
-      const s0 = t.cum[i], s1 = t.cum[i + 1];
-      if (s0 >= b) break;
-      const ub = Math.min(1, (b - s0) / (s1 - s0));
-      const [x0, y0] = t.pts[i], [x1, y1] = t.pts[i + 1];
-      ctx.strokeStyle = segGrad(t, i);
-      ctx.beginPath();
-      ctx.moveTo(x0, y0);
-      ctx.lineTo(x0 + (x1 - x0) * ub, y0 + (y1 - y0) * ub);
-      ctx.stroke();
-    }
-  }
-  function drawGroups(width, alphaMul) {
-    ctx.lineWidth = width;
-    for (const g of groups) {
-      ctx.globalAlpha = g.alpha * alphaMul;
-      for (const t of g.traces) {
-        if (t.head <= 0) continue;
-        drawRange(t, t.head);
-      }
-    }
-  }
-  function render() {
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = 1;
-    ctx.clearRect(0, 0, cv.width, cv.height);
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    for (const [w, a] of P.glow) drawGroups(w, a);   // soft glow under…
-    drawGroups(P.width, 1);                          // …the hairline core
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'destination-out';
-    for (const h of holes) ctx.fillRect(h[0], h[1], h[2], h[3]);
-    ctx.globalCompositeOperation = 'source-over';
-  }
-
-  let last = performance.now();
-  function frame(ts) {
-    const dt = Math.min(0.1, Math.max(0, (ts - last) / 1000));
-    last = ts;
-    if (holesDirty || ts - lastHoles > 500) { collectHoles(); holesDirty = false; lastHoles = ts; }
-    simT += dt; update(dt);
-    render();
-    requestAnimationFrame(frame);
-  }
-
-  size();
-  let lastW = W;
-  let resizeTimer = 0;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      size();
-      // phone browsers resize on every scroll as the address bar hides; only
-      // a real width change needs a fresh set of lines
-      if (W !== lastW && !STILL) { groups = []; used.clear(); nextSpawn = simT; lastW = W; }
-      holesDirty = true;
-    }, 150);
-  });
-
-  if (STILL) {
-    /* Reduced motion: one fully drawn, unmoving set of lines, redrawn only
-       when the copy it has to avoid moves. */
-    for (let i = 0; i < P.density; i++) {
-      const g = placeEntity(0, 'still');
-      if (!g) continue;
-      g.traces.forEach(t => { t.head = t.L; });
-      groups.push(g);
-    }
-    const still = () => {
-      if (holesDirty) { collectHoles(); holesDirty = false; render(); }
-      requestAnimationFrame(still);
-    };
-    requestAnimationFrame(still);
-  } else {
-    requestAnimationFrame(frame);
-  }
 }());
 </script>
 </body>
