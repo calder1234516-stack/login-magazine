@@ -1025,9 +1025,9 @@
   .form-select option { background: var(--bg); color: var(--white); }
 
   /* ── PITCH vs FULL SUBMISSION ───────────────────────────────
-     One panel serves both stages. /submit (and the Submit nav link) shows
-     the public pitch form; ?final shows the full submission form (sent
-     later, only to contributors who were selected). */
+     One panel serves both stages. The Submit nav link and ?pitch show
+     the public pitch form; /submit and ?final show the full submission form
+     (for contributors who were selected). */
   #submitContent[data-mode="pitch"]  #submitForm,
   #submitContent[data-mode="pitch"]  .mode-submit,
   #submitContent[data-mode="submit"] #pitchForm,
@@ -2571,7 +2571,7 @@
       </div>
     </aside>
 
-    <!-- PITCH FORM — the /submit stage. Action is set at runtime, same as the
+    <!-- PITCH FORM — the ?pitch stage. Action is set at runtime, same as the
          submission form below. -->
     <form class="submit-form" id="pitchForm" method="POST">
 
@@ -3225,15 +3225,15 @@ document.addEventListener("keydown", e => {
 });
 
 /* ── TAB ROUTING ─────────────────────────────────────────── */
-/* The Submit tab lives at loginmag.net/submit. That URL is a small redirect
-   page (submit/index.html) that sends people to /?pitch, and this puts
-   /submit back in the address bar so the link people copy is the clean one. */
+/* The Submit nav link shows the pitch form, so this puts /?pitch in the
+   address bar — the link people copy opens the pitch form. loginmag.net/submit
+   is a small redirect page (submit/index.html) to /?final, the full form. */
 function setSubmitPath(onSubmit) {
   if (!/^https?:$/.test(location.protocol)) return;   // file:// preview
   // The ?final link opens the full submission form; leave that URL alone.
   if (onSubmit && document.getElementById("submitContent")?.dataset.mode === "submit") return;
-  const want = onSubmit ? "/submit" : "/";
-  if (location.pathname !== want) history.replaceState(null, "", want + location.hash);
+  const want = onSubmit ? "/?pitch" : "/";
+  if (location.pathname + location.search !== want) history.replaceState(null, "", want + location.hash);
 }
 document.querySelectorAll(".nav-link[data-tab]").forEach(link => {
   link.addEventListener("click", () => {
@@ -3666,8 +3666,8 @@ if (heroBook && heroStage) {
 
 /* ── SUBMIT: ROUTING ─────────────────────────────────────────
    The Submit tab is in the main nav and shows the public pitch form. It also
-   opens directly from loginmag.net/submit (which redirects to /?pitch) and
-   from the ?final link sent later to selected contributors. */
+   opens directly from loginmag.net/submit (which redirects to /?final, the
+   full submission form for selected contributors). */
 (function () {
   const panel   = document.getElementById("tab-submit");
   const content = document.getElementById("submitContent");
@@ -3685,8 +3685,8 @@ if (heroBook && heroStage) {
   /* Routing: ?pitch and ?final both open this panel, and so do the
      ?pitched=1 / ?submitted=1 return trips FormSubmit sends people back on.
 
-     /submit (→ ?pitch) → the public pitch form
-     ?final             → the full submission form (sent later, to those selected)
+     ?pitch             → the public pitch form
+     /submit (→ ?final) → the full submission form (for those selected)
      Neither named → pitch, since that is the open stage. */
   const qs = new URLSearchParams(location.search);
   const wantsSubmit = qs.has("final") || qs.get("submitted") === "1";
@@ -4172,7 +4172,7 @@ if (heroBook && heroStage) {
 /* ── BACKGROUND CYBER LINES ──────────────────────────────────
    Circuit-board traces that draw themselves in, hold, and fade, forever —
    grown from cyber-lines.html (LOGIN/2.0). Runs are horizontal/vertical
-   with 45° chamfered corners, traces end in via pads, buses run in
+   with 45° chamfered corners, buses run in
    parallel, and chips put out rows of pins. Neon blue → cyan → green →
    white, with a soft glow.
    The canvas sits behind the page, and every frame the lines are erased
@@ -4187,10 +4187,10 @@ if (heroBook && heroStage) {
   const PHONE = window.matchMedia('(max-width: 700px)').matches;
   const STILL = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const P = {
-    speed: 240, density: PHONE ? 6 : 12, hold: 4, fade: 2.5,
-    width: 0.5,                    // CSS px — hairline core
+    speed: 240, density: PHONE ? 10 : 22, hold: 4, fade: 2.5,
+    width: 0,                      // set in size(): one device pixel — true hairline
     // glow: wider, fainter strokes under the core
-    glow: PHONE ? [[3.2, 0.1], [1.8, 0.22]] : [[6, 0.08], [2.4, 0.2]],
+    glow: PHONE ? [[2.2, 0.07], [1.2, 0.16]] : [[4, 0.06], [1.6, 0.14]],
     run45: 0.18,                   // chance a corner becomes a 45° run instead
     bus: 0.7, chip: 0.35,          // entity weights (single trace = 1)
   };
@@ -4225,7 +4225,8 @@ if (heroBook && heroStage) {
     W = window.innerWidth; H = window.innerHeight;
     DPR = Math.min(PHONE ? 1.5 : 2, window.devicePixelRatio || 1);
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-    U = Math.max(16, Math.round(Math.min(W, H) / 24));
+    U = Math.max(20, Math.round(Math.min(W, H) / 21));
+    P.width = 1 / DPR;
     COLS = Math.floor(W / U); ROWS = Math.floor(H / U);
     OX = (W - COLS * U) / 2; OY = (H - ROWS * U) / 2;
   }
@@ -4243,7 +4244,7 @@ if (heroBook && heroStage) {
 
   /* A PCB-style route from (x, y) heading d. Straight runs; each corner is
      a 90° turn cut by a short 45° chamfer, or now and then a 45° run. May
-     run off the canvas edge (exited) or stop on the board (ends in a via). */
+     run off the canvas edge (exited) or stop on the board. */
   function route(x, y, d, o = {}) {
     const pts = [[x, y]];
     const segs = o.segs || randi(3, 7);
@@ -4327,9 +4328,7 @@ if (heroBook && heroStage) {
     for (let i = 1; i < p.length; i++) cum.push(cum[i - 1] + Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]));
     let L = cum[cum.length - 1];
     if (o.trim) L *= o.trim;
-    const t = { pts: p, cum, L, head: 0, t0: o.t0, t1: o.t1, start: o.start, spd: o.spd, grad: [],
-                startVia: !!o.startVia, endVia: !!o.endVia };
-    t.endPt = pointAt(t, L);
+    const t = { pts: p, cum, L, head: 0, t0: o.t0, t1: o.t1, start: o.start, spd: o.spd, grad: [] };
     return t;
   }
   function pointAt(t, s) {
@@ -4355,14 +4354,13 @@ if (heroBook && heroStage) {
       const w = route(x, y, d, { canExit: fromEdge ? chance(0.5) : true });
       const px = w.pts.map(toPx);
       if (kind === 'trace') {
-        add(px, { startVia: !fromEdge, endVia: !w.exited });
+        add(px, {});
       } else {
-        const n = randi(2, 6), sp = U * pick([0.5, 0.6, 0.75, 1]), side = chance(0.5) ? 1 : -1;
+        const n = randi(2, 6), sp = U * pick([0.75, 1, 1.25]), side = chance(0.5) ? 1 : -1;
         for (let i = 0; i < n; i++) {
           const trim = (!w.exited && i > 0 && chance(0.4)) ? rand(0.6, 0.95) : 0;
           add(offsetPolyline(px, side * i * sp), {
             start: start + i * rand(0.03, 0.12), trim,
-            startVia: !fromEdge, endVia: !w.exited || trim > 0,
           });
         }
       }
@@ -4402,11 +4400,49 @@ if (heroBook && heroStage) {
       for (let j = 0; j < k; j++) {
         const trim = (!w.exited && j > 0 && chance(0.3)) ? rand(0.6, 0.95) : 0;
         add(offsetPolyline(px, sign * j * U), {
-          start: pinStart + 0.3 + j * rand(0.03, 0.1), trim, endVia: !w.exited || trim > 0,
+          start: pinStart + 0.3 + j * rand(0.03, 0.1), trim,
         });
       }
     }
     return out;
+  }
+
+  // ---------- keeping groups apart ----------
+  /* Grid cells (one per U) that each live group runs through. A new group
+     is only placed where none of its cells are another group's, so
+     separate groups never cross. */
+  const used = new Map();
+  function cellsOf(traces) {
+    const cells = new Set(), step = U / 3;
+    for (const t of traces) {
+      for (let s = 0; s < t.L + step; s += step) {
+        const [x, y] = pointAt(t, Math.min(s, t.L));
+        cells.add(Math.floor(x / U) + ',' + Math.floor(y / U));
+      }
+    }
+    return cells;
+  }
+  function clashes(cells) {
+    for (const c of cells) if (used.has(c)) return true;
+    return false;
+  }
+  function claim(cells, n) {
+    for (const c of cells) {
+      const v = (used.get(c) || 0) + n;
+      if (v > 0) used.set(c, v); else used.delete(c);
+    }
+  }
+  // a few tries at an entity that stays clear of the others; null if none fit
+  function placeEntity(start, state) {
+    for (let i = 0; i < 30; i++) {
+      const traces = spawnEntity(start);
+      if (!traces.length) continue;
+      const cells = cellsOf(traces);
+      if (clashes(cells)) continue;
+      claim(cells, 1);
+      return { traces, cells, state, holdEnd: 0, exitStart: 0, alpha: 1 };
+    }
+    return null;
   }
 
   let groups = [], simT = 0, nextSpawn = 0;
@@ -4414,9 +4450,9 @@ if (heroBook && heroStage) {
     const now = simT;
     const live = groups.filter(g => g.state !== 'exit').length;
     if (live < P.density && now >= nextSpawn) {
-      const traces = spawnEntity(now + rand(0, 0.2));
-      if (traces.length) groups.push({ traces, state: 'grow', holdEnd: 0, exitStart: 0, alpha: 1 });
-      nextSpawn = now + rand(0.2, 0.7);
+      const g = placeEntity(now + rand(0, 0.2), 'grow');
+      if (g) groups.push(g);
+      nextSpawn = now + rand(0.1, 0.35);
     }
     for (const g of groups) {
       for (const t of g.traces) {
@@ -4429,6 +4465,7 @@ if (heroBook && heroStage) {
       if (g.state === 'exit') {
         g.alpha = Math.max(0, 1 - (now - g.exitStart) / P.fade);
         g.done = g.alpha <= 0;
+        if (g.done) claim(g.cells, -1);
       }
     }
     groups = groups.filter(g => !g.done);
@@ -4490,12 +4527,6 @@ if (heroBook && heroStage) {
       ctx.stroke();
     }
   }
-  function drawVia(x, y, color) {
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.arc(x, y, Math.max(2, U * 0.22), 0, Math.PI * 2);
-    ctx.stroke();
-  }
   function drawGroups(width, alphaMul) {
     ctx.lineWidth = width;
     for (const g of groups) {
@@ -4503,8 +4534,6 @@ if (heroBook && heroStage) {
       for (const t of g.traces) {
         if (t.head <= 0) continue;
         drawRange(t, t.head);
-        if (t.startVia) drawVia(t.pts[0][0], t.pts[0][1], colorAt(t.t0));
-        if (t.endVia && t.head >= t.L) drawVia(t.endPt[0], t.endPt[1], colorAt(t.t1));
       }
     }
   }
@@ -4543,7 +4572,7 @@ if (heroBook && heroStage) {
       size();
       // phone browsers resize on every scroll as the address bar hides; only
       // a real width change needs a fresh set of lines
-      if (W !== lastW && !STILL) { groups = []; nextSpawn = simT; lastW = W; }
+      if (W !== lastW && !STILL) { groups = []; used.clear(); nextSpawn = simT; lastW = W; }
       holesDirty = true;
     }, 150);
   });
@@ -4552,9 +4581,10 @@ if (heroBook && heroStage) {
     /* Reduced motion: one fully drawn, unmoving set of lines, redrawn only
        when the copy it has to avoid moves. */
     for (let i = 0; i < P.density; i++) {
-      const traces = spawnEntity(0);
-      traces.forEach(t => { t.head = t.L; });
-      if (traces.length) groups.push({ traces, state: 'still', alpha: 1 });
+      const g = placeEntity(0, 'still');
+      if (!g) continue;
+      g.traces.forEach(t => { t.head = t.L; });
+      groups.push(g);
     }
     const still = () => {
       if (holesDirty) { collectHoles(); holesDirty = false; render(); }
