@@ -1088,14 +1088,22 @@
   }
   .form-select option { background: var(--bg); color: var(--fg); }
 
-  /* ── PITCH vs FULL SUBMISSION ───────────────────────────────
-     One panel serves both stages. The Submit nav link and ?pitch show
-     the public pitch form; /submit and ?final show the full submission form
-     (for contributors who were selected). */
+  /* ── CLOSED vs LATE PITCH vs FULL SUBMISSION ────────────────
+     One panel serves every stage. The Submit nav link and ?pitch show the
+     "pitches are closed" notice; ?latepitch (a private link sent to
+     stragglers) shows the pitch form; /submit and ?final show the full
+     submission form (for contributors who were selected). */
   #submitContent[data-mode="pitch"]  #submitForm,
   #submitContent[data-mode="pitch"]  .mode-submit,
   #submitContent[data-mode="submit"] #pitchForm,
-  #submitContent[data-mode="submit"] .mode-pitch { display: none; }
+  #submitContent[data-mode="submit"] .mode-pitch,
+  #submitContent:not([data-mode="closed"]) .mode-closed,
+  #submitContent[data-mode="closed"] .submit-meta,
+  #submitContent[data-mode="closed"] .pitch-jump,
+  #submitContent[data-mode="closed"] .submit-body,
+  #submitContent[data-mode="closed"] .stage-card:not(.mode-closed),
+  #submitContent[data-mode="closed"] .submit-layout { display: none; }
+  .stage-note a { color: inherit; }
 
   /* ── SUBMIT HEADER ──────────────────────────────────────────── */
   .submit-head { max-width: 760px; }
@@ -2534,12 +2542,12 @@
       <dl class="submit-meta">
         <div>
           <dt>Stage</dt>
-          <dd class="mode-pitch">Pitches — open now</dd>
+          <dd class="mode-pitch">Late pitches — private link</dd>
           <dd class="mode-submit">Final work — selected contributors</dd>
         </div>
         <div>
           <dt>Deadline</dt>
-          <dd class="mode-pitch">October 5th</dd>
+          <dd class="mode-pitch">As soon as you can</dd>
           <dd class="mode-submit">November 15th</dd>
         </div>
         <div>
@@ -2564,6 +2572,17 @@
 
     <!-- Stage card: what this stage asks for and when it closes, in one
          block, so the deadline is never hunted for in the prose. -->
+    <!-- Shown on the public Submit tab now that the pitch round is over. -->
+    <div class="stage-card mode-closed">
+      <div class="stage-flag">Pitches are closed</div>
+      <p class="stage-note">
+        Thank you for contributing — look out for more updates on Issue 02 soon.
+        If you missed this round of pitches, follow
+        <a href="https://www.instagram.com/login.mag/" target="_blank" rel="noopener noreferrer">@login.mag</a>
+        on Instagram for future opportunities.
+      </p>
+    </div>
+
     <div class="stage-card mode-pitch">
       <div class="stage-flag">Stage 01 — Pitch</div>
       <p class="stage-note">
@@ -2571,7 +2590,7 @@
         finished draft. If your work is selected for print, LOGIN will reach out
         by email with a submission link for sending your final files.
       </p>
-      <div class="stage-due">Pitches due October 5th</div>
+      <div class="stage-due">Pitches closed October 5th — send yours as soon as you can</div>
     </div>
 
     <div class="stage-card mode-submit">
@@ -2597,7 +2616,7 @@
         <div class="guide-group">
           <div class="guide-head">Key dates</div>
           <ul class="guide-list">
-            <li><span class="guide-date">October 5th</span> — pitches due</li>
+            <li><span class="guide-date">October 5th</span> — pitches closed</li>
             <li><span class="guide-date">November 15th</span> — final work and statement due</li>
           </ul>
         </div>
@@ -2639,7 +2658,7 @@
       <input type="hidden" name="_subject" value="LOGIN — New Pitch (Issue 02)">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_autoresponse" value="Got it — your pitch for LOGIN Issue 02 arrived. Pitches close October 5th, and we'll be in touch by email after that. If your work is selected for print, that email will include a link for sending your final files. — LOGIN">
+      <input type="hidden" name="_autoresponse" value="Got it — your pitch for LOGIN Issue 02 arrived, and we'll be in touch by email soon. If your work is selected for print, that email will include a link for sending your final files. — LOGIN">
       <input type="text" name="_honey" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
       <p class="form-intro">
@@ -3286,13 +3305,13 @@ document.addEventListener("keydown", e => {
 });
 
 /* ── TAB ROUTING ─────────────────────────────────────────── */
-/* The Submit nav link shows the pitch form, so this puts /?pitch in the
-   address bar — the link people copy opens the pitch form. loginmag.net/submit
-   is a small redirect page (submit/index.html) to /?final, the full form. */
+/* The Submit nav link shows the "pitches are closed" notice under /?pitch.
+   loginmag.net/submit is a small redirect page (submit/index.html) to
+   /?final, the full form. */
 function setSubmitPath(onSubmit) {
   if (!/^https?:$/.test(location.protocol)) return;   // file:// preview
-  // The ?final link opens the full submission form; leave that URL alone.
-  if (onSubmit && document.getElementById("submitContent")?.dataset.mode === "submit") return;
+  // ?final and the private ?latepitch link open forms; leave those URLs alone.
+  if (onSubmit && document.getElementById("submitContent")?.dataset.mode !== "closed") return;
   const want = onSubmit ? "/?pitch" : "/";
   if (location.pathname + location.search !== want) history.replaceState(null, "", want + location.hash);
 }
@@ -3726,7 +3745,7 @@ if (heroBook && heroStage) {
 }());
 
 /* ── SUBMIT: ROUTING ─────────────────────────────────────────
-   The Submit tab is in the main nav and shows the public pitch form. It also
+   The Submit tab is in the main nav and says pitches are closed. It also
    opens directly from loginmag.net/submit (which redirects to /?final, the
    full submission form for selected contributors). */
 (function () {
@@ -3746,14 +3765,15 @@ if (heroBook && heroStage) {
   /* Routing: ?pitch and ?final both open this panel, and so do the
      ?pitched=1 / ?submitted=1 return trips FormSubmit sends people back on.
 
-     ?pitch             → the public pitch form
+     ?latepitch         → the pitch form (private link for stragglers)
      /submit (→ ?final) → the full submission form (for those selected)
-     Neither named → pitch, since that is the open stage. */
+     Anything else, ?pitch included → pitches are closed. */
   const qs = new URLSearchParams(location.search);
   const wantsSubmit = qs.has("final") || qs.get("submitted") === "1";
-  content.setAttribute("data-mode", wantsSubmit ? "submit" : "pitch");
+  const wantsPitch  = qs.has("latepitch") || qs.get("pitched") === "1";
+  content.setAttribute("data-mode", wantsSubmit ? "submit" : wantsPitch ? "pitch" : "closed");
 
-  if (wantsSubmit || qs.has("pitch") || qs.get("pitched") === "1") {
+  if (wantsSubmit || wantsPitch || qs.has("pitch")) {
     // Deferred so the form scripts below read ?pitched / ?submitted before
     // opening the tab rewrites the URL.
     setTimeout(openSubmitTab, 0);
@@ -3810,7 +3830,7 @@ if (heroBook && heroStage) {
   if (new URLSearchParams(location.search).get("pitched") === "1") {
     if (status) {
       status.className = "form-status ok show";
-      status.textContent = "Got it — your pitch was sent. Pitches close October 5th, and we'll be in touch by email after that. A copy of this confirmation is on its way to your inbox.";
+      status.textContent = "Got it — your pitch was sent, and we'll be in touch by email soon. A copy of this confirmation is on its way to your inbox.";
     }
     form.reset();
     history.replaceState(null, "", location.pathname);
