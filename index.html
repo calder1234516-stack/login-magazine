@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; form-action 'self' https://formsubmit.co; frame-ancestors 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://api.web3forms.com; form-action 'self' https://api.web3forms.com; frame-ancestors 'none'; base-uri 'self';">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Login Magazine</title>
 <meta name="description" content="LOGIN is a print magazine on how digital systems shape culture, behavior, and perception, with essays, visual work, and contributions from artists, designers, and technologists.">
@@ -2651,15 +2651,15 @@
       </div>
     </aside>
 
-    <!-- PITCH FORM — the ?pitch stage. Action is set at runtime, same as the
-         submission form below. -->
-    <form class="submit-form" id="pitchForm" method="POST">
+    <!-- PITCH FORM — the ?pitch stage. Sent to Web3Forms (emails
+         info@loginmag.net); the script below sends it in the background. -->
+    <form class="submit-form" id="pitchForm" method="POST" action="https://api.web3forms.com/submit">
 
-      <input type="hidden" name="_subject" value="LOGIN — New Pitch (Issue 02)">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_autoresponse" value="Got it — your pitch for LOGIN Issue 02 arrived, and we'll be in touch by email soon. If your work is selected for print, that email will include a link for sending your final files. — LOGIN">
-      <input type="text" name="_honey" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <!-- Web3Forms config -->
+      <input type="hidden" name="access_key" value="37dcff78-3fb7-4070-a156-7356b51e2704">
+      <input type="hidden" name="subject" value="LOGIN — New Pitch (Issue 02)">
+      <input type="hidden" name="from_name" value="LOGIN">
+      <input type="checkbox" name="botcheck" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none;">
 
       <p class="form-intro">
         Two short sections. Fields marked <span class="req">*</span> are required.
@@ -2745,16 +2745,15 @@
       </div>
     </form>
 
-    <!-- action is set at runtime from SUBMIT_EMAIL in the SUBMIT FORM script
-         below (info@loginmag.net), so the address is never sitting in the
-         markup for scrapers to lift. -->
-    <form class="submit-form" id="submitForm" method="POST">
+    <!-- Sent to Web3Forms, which emails info@loginmag.net. The access key is
+         public by design — it only lets people send to that inbox. -->
+    <form class="submit-form" id="submitForm" method="POST" action="https://api.web3forms.com/submit">
 
-      <!-- FormSubmit config -->
-      <input type="hidden" name="_subject" value="LOGIN — New Submission">
-      <input type="hidden" name="_template" value="table">
-      <input type="hidden" name="_captcha" value="false">
-      <input type="text" name="_honey" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <!-- Web3Forms config -->
+      <input type="hidden" name="access_key" value="37dcff78-3fb7-4070-a156-7356b51e2704">
+      <input type="hidden" name="subject" value="LOGIN — New Submission">
+      <input type="hidden" name="from_name" value="LOGIN">
+      <input type="checkbox" name="botcheck" class="form-hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none;">
 
       <p class="form-intro">
         Three short sections. Fields marked <span class="req">*</span> are required.
@@ -3763,7 +3762,7 @@ if (heroBook && heroStage) {
   }
 
   /* Routing: ?pitch and ?final both open this panel, and so do the
-     ?pitched=1 / ?submitted=1 return trips FormSubmit sends people back on.
+     the old ?pitched=1 / ?submitted=1 return links (kept so old links still land).
 
      ?latepitch         → the pitch form (private link for stragglers)
      /submit (→ ?final) → the full submission form (for those selected)
@@ -3780,12 +3779,46 @@ if (heroBook && heroStage) {
   }
 }());
 
-/* ── PITCH FORM ──────────────────────────────────────────────
-   Same inbox and same FormSubmit endpoint as the submission form; only the
-   subject line and the return URL differ. No attachments at this stage. */
-(function () {
-  const PITCH_EMAIL = "info@loginmag.net";
+/* ── WEB3FORMS SENDER ────────────────────────────────────────
+   Both forms post to Web3Forms (access key in each form's hidden fields →
+   emails info@loginmag.net). Sent in the background so the visitor stays on
+   the page and sees the confirmation in the form's status box. */
+function sendViaWeb3Forms(form, btn, status, okMessage) {
+  const label = btn.textContent;
+  function show(kind, text) {
+    if (!status) return;
+    status.className = "form-status " + kind + " show";
+    status.textContent = text;
+    status.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    try {
+      const res  = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: new FormData(form)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || res.status);
+      form.reset();
+      form.querySelectorAll("textarea").forEach(t => t.dispatchEvent(new Event("input")));
+      show("ok", okMessage);
+    } catch (err) {
+      show("err", "Sorry — that didn't send. Please try again in a moment, or email info@loginmag.net directly.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  });
+}
 
+/* ── PITCH FORM ──────────────────────────────────────────────
+   Same inbox as the submission form; only the subject line differs.
+   No attachments at this stage. */
+(function () {
   const form = document.getElementById("pitchForm");
   if (!form) return;
   const btn    = document.getElementById("pitchSubmitBtn");
@@ -3804,91 +3837,19 @@ if (heroBook && heroStage) {
   }
   pitch?.addEventListener("input", countWords);
 
-  if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(PITCH_EMAIL)) {
-    form.action = "https://formsubmit.co/" + PITCH_EMAIL;
-
-    const next = document.createElement("input");
-    next.type  = "hidden";
-    next.name  = "_next";
-    next.value = location.origin + "/?pitched=1";
-    form.appendChild(next);
-
-    form.addEventListener("submit", () => {
-      btn.disabled = true;
-      btn.textContent = "Sending…";
-    });
-  } else {
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      if (!status) return;
-      status.className = "form-status err show";
-      status.textContent = "Pitches aren't open just yet — the LOGIN inbox is still being set up. Please check back shortly.";
-      status.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-  }
-
-  if (new URLSearchParams(location.search).get("pitched") === "1") {
-    if (status) {
-      status.className = "form-status ok show";
-      status.textContent = "Got it — your pitch was sent, and we'll be in touch by email soon. A copy of this confirmation is on its way to your inbox.";
-    }
-    form.reset();
-    history.replaceState(null, "", location.pathname);
-    setTimeout(() => status?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
-  }
+  sendViaWeb3Forms(form, btn, status,
+    "Got it — your pitch was sent, and we'll be in touch by email soon.");
 }());
 
 /* ── SUBMIT FORM ─────────────────────────────────────────── */
 (function () {
-  /* Where submissions are emailed. FormSubmit emails this address a one-time
-     confirmation link the first time a submission is sent — that link must be
-     clicked once, or nothing after it arrives. */
-  const SUBMIT_EMAIL = "info@loginmag.net";
-
   const form = document.getElementById("submitForm");
   if (!form) return;
   const btn    = document.getElementById("formSubmitBtn");
   const status = document.getElementById("formStatus");
 
-  const configured = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(SUBMIT_EMAIL);
-
-  if (configured) {
-    form.action = "https://formsubmit.co/" + SUBMIT_EMAIL;
-
-    // FormSubmit's standard endpoint redirects after sending — so we send it
-    // back to this page with ?submitted=1.
-    const next = document.createElement("input");
-    next.type = "hidden";
-    next.name = "_next";
-    next.value = location.origin + "/?submitted=1";
-    form.appendChild(next);
-
-    form.addEventListener("submit", () => {
-      btn.disabled = true;
-      btn.textContent = "Sending…";
-    });
-  } else {
-    /* No destination yet — block the send and say why, in plain language. */
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      if (!status) return;
-      status.className = "form-status err show";
-      status.textContent = "Submissions aren't open just yet — the LOGIN inbox is still being set up. Please check back shortly.";
-      status.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-  }
-
-  // On return from a successful submission, confirm. The routing script has
-  // already switched to this tab.
-  if (new URLSearchParams(location.search).get("submitted") === "1") {
-    if (status) {
-      status.className = "form-status ok show";
-      status.textContent = "Thank you — your submission was sent. We review on a rolling basis and will reply to the email you provided.";
-    }
-    form.reset();
-    history.replaceState(null, "", location.pathname);
-    setTimeout(() => status?.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
-  }
+  sendViaWeb3Forms(form, btn, status,
+    "Thank you — your submission was sent. We review on a rolling basis and will reply to the email you provided.");
 }());
 
 /* ── MOBILE NAV ──────────────────────────────────────────────── */
