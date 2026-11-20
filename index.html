@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://loginmag.net/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The LOGIN Magazine homepage: Issue 01, available now for $35">
+<meta property="og:image:alt" content="The LOGIN Magazine homepage: Issue 01, sold out">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://loginmag.net/og-image.jpg">
 <!-- Generated from favicon/favicon final.png -->
@@ -2416,15 +2416,14 @@
     <!-- HERO: Issue 01 -->
     <section class="hero" id="heroIssue">
       <div class="hero-left">
-        <div class="hero-eyebrow">Available Now — $35</div>
+        <div class="hero-eyebrow">Sold Out</div>
         <h1 class="hero-title">Issue<br>01</h1>
         <div class="hero-subtitle">2026· 134PP · 8.5 × 11 IN. · PERFECT BOUND</div>
         <p class="hero-desc">LOGIN's inaugural issue explores artists, designers, and technologists whose work and practices revolve around the internet and emerging technologies, documenting how we interact with technology.</p>
         <div class="hero-actions">
-          <button class="hero-btn-primary" onclick="openIssueDetail(0, true)">Buy Now →</button>
           <button class="hero-btn-secondary" onclick="openIssueDetail(0, false)">Details</button>
         </div>
-        <div class="hero-shipping">Ships 1–2 weeks · NYC pickup available</div>
+        <div class="hero-shipping">Issue 01 is sold out · No reprint</div>
       </div>
       <div class="hero-right" id="heroBookTrigger" role="button" tabindex="0" style="cursor:pointer;" title="Open Issue 01 — view spreads" aria-label="Open Issue 01 and view the spreads">
         <div class="hero-book-stage">
@@ -2908,10 +2907,10 @@ const issues = [
       "Zane Kind","Tabi Cass","Max Bochman & Luis Reyes"
     ],
     specs: "8.5 × 11 in · Perfect Bound · 132 Pages",
-    available: true,
+    available: false,
+    soldOut: true,
     cover:     "issue 01 covers/LOGIN MASTER FILE.png",
     coverBack: "issue 01 covers/LOGIN MASTER FILE67.png",
-    orderUrl:  "mailto:calder1234516@gmail.com?subject=LOGIN%20Issue%2001%20Order",
     /* Detailed specs shown on the issue page (key → value) */
     specsDetail: {
       "Issue":      "No. 01 — The .exe Issue",
@@ -2923,8 +2922,7 @@ const issues = [
       "Edition":    "First run",
       "Released":   "2026",
       "Price":      "$35 USD",
-      "Shipping":   "Ships 1–2 weeks after purchase",
-      "Pickup":     "Local pickup available for NYC orders"
+      "Status":     "Sold out"
     },
     /* Spreads — real product shots. Items without `src` show as placeholders.
        The two shots of the object itself lead, because on mobile this list is
@@ -3005,8 +3003,8 @@ function renderIssues() {
         ${iss.specs ? `<div class="issue-specs">${iss.specs}</div>` : ''}
         <div class="issue-desc">${iss.desc}</div>
         ${iss.contributors ? `<div class="issue-contributors">${iss.contributors.join(' · ')}</div>` : ''}
-        <span class="issue-cta ${iss.available ? '' : 'unavailable'}" ${iss.available ? `data-order="${i}" role="button" tabindex="0" data-activate` : ''}>${iss.available ? `Order — ${iss.price || ''}` : 'Coming soon'} →</span>
-        ${iss.available ? `<span class="issue-shipping">Ships 1–2 weeks · NYC pickup available</span>` : ''}
+        <span class="issue-cta ${iss.available ? '' : 'unavailable'}" ${iss.available ? `data-order="${i}" role="button" tabindex="0" data-activate` : ''}>${iss.available ? `Order — ${iss.price || ''} →` : (iss.soldOut ? 'Sold out' : 'Coming soon →')}</span>
+        ${iss.available ? `<span class="issue-shipping">Ships 1–2 weeks</span>` : ''}
       </div>
     </div>`).join("") + `
     <div class="issue-card" style="min-height:280px;display:flex;align-items:center;justify-content:center;position:relative;">
@@ -3075,31 +3073,13 @@ function renderIssueDetail(idx) {
         </div>` : ''}
       </div>
       <div class="detail-info">
-        <div class="detail-eyebrow">${iss.available ? 'Available Now' : 'Coming Soon'}</div>
+        <div class="detail-eyebrow">${iss.available ? 'Available Now' : (iss.soldOut ? 'Sold Out' : 'Coming Soon')}</div>
         <h1 class="detail-title">Issue ${iss.num}</h1>
         <div class="detail-sub">${iss.specs || ''}</div>
         ${iss.price ? `<div class="detail-price">${iss.price}</div>` : ''}
         <p class="detail-desc">${iss.desc || ''}</p>
         ${iss.available ? `
-        <div class="detail-ship">Ships 1–2 weeks · NYC pickup available</div>
-        <div class="pay-heading">Buy this issue — choose an option</div>
-        <div class="pay-options" id="detailPayment">
-          <!-- ...9k404 is the $35 "(PICK UP)" product, ...9k405 the $41 "(SHIPPED)"
-               one — verified against the live Stripe checkout pages. -->
-          <a class="pay-opt" href="https://buy.stripe.com/4gM3cufscbqP6pHd5x9k404" target="_blank" rel="noopener noreferrer">
-            <span class="pay-opt-title">Pick Up</span>
-            <span class="pay-opt-price">$35</span>
-            <span class="pay-opt-sub">New York · No shipping fee</span>
-            <span class="pay-opt-cta">Buy Now →</span>
-          </a>
-          <a class="pay-opt" href="https://buy.stripe.com/fZu28qfsc66vcO58Ph9k405" target="_blank" rel="noopener noreferrer">
-            <span class="pay-opt-title">Shipped</span>
-            <span class="pay-opt-price">$41</span>
-            <span class="pay-opt-sub">$35 + $6 domestic shipping</span>
-            <span class="pay-opt-cta">Buy Now →</span>
-          </a>
-        </div>
-        <div class="pay-note">Secure checkout via Stripe</div>` : `<div class="detail-ship">Not yet available</div>`}
+        <div class="detail-ship">Ships 1–2 weeks</div>` : `<div class="detail-ship">${iss.soldOut ? 'Sold out · No reprint' : 'Not yet available'}</div>`}
         ${(iss.contributors || iss.interviews) ? `
         <!-- phone-only copy; the desktop one lives in the left column. Sitting
              inside .detail-info lets the mobile order rules slot it between the
